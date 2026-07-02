@@ -1,0 +1,528 @@
+@baseUrl = http://localhost:8000/api
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzgyOTYwNjE5LCJpYXQiOjE3ODI5NTcwMTksImp0aSI6IjgzYjliMmY3N2FkNTQzNDY4NTFiYjRlNTdlNmQ2ZGU4IiwidXNlcl9pZCI6IjciLCJ1c2VybmFtZSI6Im5ld3VzZXIiLCJlbWFpbCI6Im5ld3VzZXJAZXhhbXBsZS5jb20iLCJpc19zdGFmZiI6ZmFsc2V9.6F7SHLeEjMw5zIch7JRMhMiD2Gqz2BO7sjGfacJCxW
+@apiKey = test-api-key-12345
+
+###############################################################################
+# 1. AUTHENTICATION ENDPOINTS
+###############################################################################
+
+### Register a new user
+POST {{baseUrl}}/auth/register/
+Content-Type: application/json
+
+{
+  "username": "newuser",
+  "email": "newuser@example.com",
+  "password": "testuser123",
+  "password_confirm": "testuser123",
+  "first_name": "John",
+  "last_name": "Doe"
+}
+
+### Register another user (for testing)
+POST {{baseUrl}}/auth/register/
+Content-Type: application/json
+
+{
+  "username": "adminuser",
+  "email": "admin@example.com",
+  "password": "admin123",
+  "first_name": "Admin",
+  "last_name": "User"
+}
+
+### Get JWT Token (Login)
+# @name login
+POST {{baseUrl}}/token/
+Content-Type: application/json
+
+{
+  "username": "admin@example.com",
+  "password": "admin123"
+}
+
+
+### Get User Profile
+GET {{baseUrl}}/auth/profile/
+Authorization: Bearer {{login.response.body.access}}
+
+### Update User Profile
+PUT {{baseUrl}}/auth/profile/
+Authorization: Bearer {{login.response.body.access}}
+Content-Type: application/json
+
+{
+  "first_name": "John",
+  "last_name": "Updated",
+  "bio": "Automotive enthusiast"
+}
+
+### List all suppliers
+GET {{baseUrl}}/suppliers/
+Authorization: Bearer {{login.response.body.access}}
+
+### List suppliers with pagination
+GET {{baseUrl}}/suppliers/?page=1&page_size=10
+Authorization: Bearer {{login.response.body.access}}
+
+### Search suppliers by name
+GET {{baseUrl}}/suppliers/?search=Bosch
+Authorization: Bearer {{login.response.body.access}}
+
+### Sort suppliers by name
+GET {{baseUrl}}/suppliers/?ordering=name
+Authorization: Bearer {{login.response.body.access}}
+
+### Get a specific supplier
+GET {{baseUrl}}/suppliers/1/
+Authorization: Bearer {{login.response.body.access}}
+
+### Create a new supplier (Admin only)
+POST {{baseUrl}}/suppliers/
+Authorization: Bearer {{login.response.body.access}}
+Content-Type: application/json
+
+{
+  "name": "McPearse Automotive",
+  "catalog_url": "https://bosch.example.com/catalog",
+  "is_active": true
+}
+
+### Create another supplier
+POST {{baseUrl}}/suppliers/
+Authorization: Bearer {{login.response.body.access}}
+Content-Type: application/json
+
+{
+  "name": "Magneti Marelli",
+  "catalog_url": "https://magnetimarelli.example.com",
+  "is_active": true
+}
+
+### Update supplier
+PUT {{baseUrl}}/suppliers/1/
+Authorization: Bearer {{login.response.body.access}}
+Content-Type: application/json
+
+{
+  "name": "Bosch Automotive Updated",
+  "catalog_url": "https://bosch.example.com/updated",
+  "is_active": true
+}
+
+### Partial update supplier
+PATCH {{baseUrl}}/suppliers/1/
+Authorization: Bearer {{login.response.body.access}}
+Content-Type: application/json
+
+{
+  "is_active": false
+}
+
+### Delete supplier
+DELETE {{baseUrl}}/suppliers/1/
+Authorization: Bearer {{login.response.body.access}}
+
+###############################################################################
+# 3. PARTS ENDPOINTS
+###############################################################################
+
+### List all parts
+GET {{baseUrl}}/parts/
+Authorization: Bearer {{login.response.body.access}}
+
+### List parts with pagination
+GET {{baseUrl}}/parts/?page=1&page_size=20
+Authorization: Bearer {{login.response.body.access}}
+
+### Search parts by name
+GET {{baseUrl}}/parts/?search=Motor
+Authorization: Bearer {{login.response.body.access}}
+
+### Filter parts by supplier
+GET {{baseUrl}}/parts/?supplier=1
+Authorization: Bearer {{login.response.body.access}}
+
+### Filter parts by quantity (in stock)
+GET {{baseUrl}}/parts/?quantity__gt=13
+Authorization: Bearer {{login.response.body.access}}
+
+### Sort parts by price
+GET {{baseUrl}}/parts/?ordering=price
+Authorization: Bearer {{login.response.body.access}}
+
+### Sort parts by price descending
+GET {{baseUrl}}/parts/?ordering=-price
+Authorization: Bearer {{login.response.body.access}}
+
+### Get only available parts (quantity > 0)
+GET {{baseUrl}}/parts/available/
+Authorization: Bearer {{login.response.body.access}}
+
+### Get specific part
+GET {{baseUrl}}/parts/1/
+Authorization: Bearer {{login.response.body.access}}
+
+### Create a new part
+POST {{baseUrl}}/parts/
+Authorization: Bearer {{login.response.body.access}}
+Content-Type: application/json
+
+{
+  "name": "Motor V8 3.0L",
+  "description": "High performance V8 engine for sports cars",
+  "price": 5000.00,
+  "quantity": 10,
+  "supplier": 1
+}
+
+### Create another part
+POST {{baseUrl}}/parts/
+Authorization: Bearer {{login.response.body.access}}
+Content-Type: application/json
+
+{
+  "name": "Turbocharger Garrett",
+  "description": "Premium turbocharged engine component",
+  "price": 3500.00,
+  "quantity": 5,
+  "supplier": 2
+}
+
+### Create multiple parts
+POST {{baseUrl}}/parts/
+Authorization: Bearer {{login.response.body.access}}
+Content-Type: application/json
+
+{
+  "name": "Air Filter K&N",
+  "description": "Reusable high flow air filter",
+  "price": 150.00,
+  "quantity": 25,
+  "supplier": 1
+}
+
+### Update part (full)
+PUT {{baseUrl}}/parts/1/
+Authorization: Bearer {{login.response.body.access}}
+Content-Type: application/json
+
+{
+  "name": "Motor 1.0 3 cilindros",
+  "description": "Updated high performance V8 engine",
+  "price": 10000.00,
+  "quantity": 1,
+  "supplier": 1
+}
+
+### Partial update part
+PATCH {{baseUrl}}/parts/1/
+Authorization: Bearer {{login.response.body.access}}
+Content-Type: application/json
+
+{
+  "quantity": 5,
+  "price": 4800.00
+}
+
+### Delete part
+DELETE {{baseUrl}}/parts/1/
+Authorization: Bearer {{login.response.body.access}}
+
+###############################################################################
+# 4. CSV UPLOAD ENDPOINTS
+###############################################################################
+
+### List all CSV uploads
+GET {{baseUrl}}/csv-uploads/
+Authorization: Bearer {{login.response.body.access}}
+
+### Get specific CSV upload
+GET {{baseUrl}}/csv-uploads/1/
+Authorization: Bearer {{login.response.body.access}}
+
+### Check CSV upload status
+GET {{baseUrl}}/csv-uploads/1/status/
+Authorization: Bearer {{login.response.body.access}}
+
+### Filter uploads by status
+GET {{baseUrl}}/csv-uploads/?status=completed
+Authorization: Bearer {{login.response.body.access}}
+
+### Upload CSV file (Parts import)
+POST {{baseUrl}}/csv-uploads/
+Authorization: Bearer {{login.response.body.access}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+
+------WebKitFormBoundary
+Content-Disposition: form-data; name="file"; filename="parts.csv"
+Content-Type: text/csv
+
+name,price,quantity,supplier_name,description
+Motor V8 3.0L,5000.00,10,Bosch Automotive,High performance engine
+Turbo Garrett,3500.00,5,Magneti Marelli,Premium turbocharger
+Air Filter K&N,150.00,25,Bosch Automotive,Reusable air filter
+
+------WebKitFormBoundary--
+
+### Get CSV upload statistics
+GET {{baseUrl}}/csv-uploads/?ordering=-created_at
+Authorization: Bearer {{login.response.body.access}}
+
+###############################################################################
+# 5. CONSULTANT (IA) ENDPOINTS
+###############################################################################
+
+### Query the AI Consultant
+POST {{baseUrl}}/consultor/
+Authorization: Bearer {{login.response.body.access}}
+Content-Type: application/json
+
+{
+  "query": "I need a motor for my sports car, preferably V8"
+}
+
+### Another AI Consultant query
+POST {{baseUrl}}/consultor/
+Authorization: Bearer {{login.response.body.access}}
+Content-Type: application/json
+
+{
+  "query": "Recomend a turbocharger for high performance applications"
+}
+
+### Simple parts search query
+POST {{baseUrl}}/consultor/
+Authorization: Bearer {{login.response.body.access}}
+Content-Type: application/json
+
+{
+  "query": "What filters do you have available?"
+}
+
+### Get consultant query history
+GET {{baseUrl}}/consultor/historico/
+Authorization: Bearer {{login.response.body.access}}
+
+### Get consultant history with pagination
+GET {{baseUrl}}/consultor/historico/?page=1&page_size=10
+Authorization: Bearer {{login.response.body.access}}
+
+### Filter history by user (optional)
+GET {{baseUrl}}/consultor/historico/?ordering=-created_at
+Authorization: Bearer {{login.response.body.access}}
+
+###############################################################################
+# 6. EXTERNAL API INTEGRATION ENDPOINTS
+###############################################################################
+
+### List API Keys (Admin only)
+GET {{baseUrl}}/api-keys/
+Authorization: Bearer {{login.response.body.access}}
+
+### Create new API Key
+POST {{baseUrl}}/api-keys/
+Authorization: Bearer {{login.response.body.access}}
+Content-Type: application/json
+
+{
+  "name": "External ERP System",
+  "key": "custom-api-key-12345"
+}
+
+### Get specific API Key
+GET {{baseUrl}}/api-keys/1/
+Authorization: Bearer {{login.response.body.access}}
+
+### Update API Key
+PUT {{baseUrl}}/api-keys/1/
+Authorization: Bearer {{login.response.body.access}}
+Content-Type: application/json
+
+{
+  "name": "Updated ERP Integration",
+  "key": "new-api-key-67890"
+}
+
+### Disable API Key
+PATCH {{baseUrl}}/api-keys/1/
+Authorization: Bearer {{login.response.body.access}}
+Content-Type: application/json
+
+{
+  "is_active": false
+}
+
+### Delete API Key
+DELETE {{baseUrl}}/api-keys/1/
+Authorization: Bearer {{login.response.body.access}}
+
+### External API: Search parts (using API Key)
+GET {{baseUrl}}/external/parts/search/?query=motor
+X-API-Key: {{apiKey}}
+
+### External API: Search parts with pagination
+GET {{baseUrl}}/external/parts/search/?query=turbo&limit=10
+X-API-Key: {{apiKey}}
+
+### External API: Get part detail
+GET {{baseUrl}}/external/parts/1/
+X-API-Key: {{apiKey}}
+
+### External API: Update inventory stock
+POST {{baseUrl}}/external/inventory/update/
+X-API-Key: {{apiKey}}
+Content-Type: application/json
+
+{
+  "part_id": 1,
+  "quantity_adjustment": -5,
+  "reason": "Venda externa ERP"
+}
+
+### External API: Batch stock update
+POST {{baseUrl}}/integrations/stock-update/
+X-API-Key: {{apiKey}}
+Content-Type: application/json
+
+{
+  "updates": [
+    {
+      "part_id": 1,
+      "new_quantity": 15
+    },
+    {
+      "part_id": 2,
+      "new_quantity": 8
+    }
+  ]
+}
+
+### List integration logs
+GET {{baseUrl}}/integration-logs/
+Authorization: Bearer {{login.response.body.access}}
+
+### List integration logs with filtering
+GET {{baseUrl}}/integration-logs/?status=success
+Authorization: Bearer {{login.response.body.access}}
+
+### Get specific integration log
+GET {{baseUrl}}/integration-logs/1/
+Authorization: Bearer {{login.response.body.access}}
+
+### Filter logs by date range
+GET {{baseUrl}}/integration-logs/?ordering=-timestamp
+Authorization: Bearer {{login.response.body.access}}
+
+###############################################################################
+# 7. ADVANCED SEARCH & FILTERING
+###############################################################################
+
+### Search parts by multiple criteria
+GET {{baseUrl}}/parts/?search=Motor&supplier=1&quantity__gt=5&ordering=-price
+Authorization: Bearer {{login.response.body.access}}
+
+### Full text search in description
+GET {{baseUrl}}/parts/?search=performance
+Authorization: Bearer {{login.response.body.access}}
+
+### Search with limit
+GET {{baseUrl}}/parts/?search=motor&page_size=5
+Authorization: Bearer {{login.response.body.access}}
+
+### Get parts sorted by creation date
+GET {{baseUrl}}/parts/?ordering=-created_at
+Authorization: Bearer {{login.response.body.access}}
+
+### Get parts with high stock
+GET {{baseUrl}}/parts/?quantity__gt=20&ordering=name
+Authorization: Bearer {{login.response.body.access}}
+
+###############################################################################
+# 8. ERROR CASES & EDGE CASES
+###############################################################################
+
+### Try to access without token (should fail)
+GET {{baseUrl}}/parts/
+Content-Type: application/json
+
+### Try invalid token
+GET {{baseUrl}}/parts/
+Authorization: Bearer invalid.token.here
+Content-Type: application/json
+
+### Create part with missing required field
+POST {{baseUrl}}/parts/
+Authorization: Bearer {{login.response.body.access}}
+Content-Type: application/json
+
+{
+  "name": "Incomplete Part",
+  "description": "Missing price and quantity"
+}
+
+### Create part with invalid price
+POST {{baseUrl}}/parts/
+Authorization: Bearer {{login.response.body.access}}
+Content-Type: application/json
+
+{
+  "name": "Test Part",
+  "description": "Invalid price",
+  "price": -100.00,
+  "quantity": 5,
+  "supplier": 1
+}
+
+### Get non-existent part (404)
+GET {{baseUrl}}/parts/99999/
+Authorization: Bearer {{login.response.body.access}}
+
+### Update non-existent part (404)
+PUT {{baseUrl}}/parts/99999/
+Authorization: Bearer {{login.response.body.access}}
+Content-Type: application/json
+
+{
+  "name": "Ghost Part"
+}
+
+### Delete non-existent part (404)
+DELETE {{baseUrl}}/parts/99999/
+Authorization: Bearer {{login.response.body.access}}
+
+###############################################################################
+# 9. BULK OPERATIONS
+###############################################################################
+
+### Create supplier bulk import (via CSV)
+POST {{baseUrl}}/csv-uploads/
+Authorization: Bearer {{login.response.body.access}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
+
+------WebKitFormBoundary
+Content-Disposition: form-data; name="file"; filename="suppliers.csv"
+Content-Type: text/csv
+
+name,catalog_url
+New Supplier 1,https://supplier1.example.com
+New Supplier 2,https://supplier2.example.com
+New Supplier 3,https://supplier3.example.com
+
+------WebKitFormBoundary--
+
+###############################################################################
+# 10. PERFORMANCE TESTING
+###############################################################################
+
+### List large result set
+GET {{baseUrl}}/parts/?page=1&page_size=100
+Authorization: Bearer {{login.response.body.access}}
+
+### Complex search query
+GET {{baseUrl}}/parts/?search=motor&supplier=1&ordering=-price&page_size=50
+Authorization: Bearer {{login.response.body.access}}
+
+### Get consultant history (potentially large)
+GET {{baseUrl}}/consultor/historico/?page_size=50&ordering=-created_at
+Authorization: Bearer {{login.response.body.access}}

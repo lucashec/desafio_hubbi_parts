@@ -1,0 +1,125 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: hubbi_postgres
+    environment:
+      POSTGRES_DB: hubbi_parts_db
+      POSTGRES_USER: hubbi_user
+      POSTGRES_PASSWORD: hubbi_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hubbi_user -d hubbi_parts_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: hubbi_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: hubbi_web
+    command: >
+      sh -c "python manage.py migrate &&
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 4"
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-change-this-in-production
+      - ALLOWED_HOSTS=localhost,127.0.0.1,web
+      - DATABASE_ENGINE=django.db.backends.postgresql
+      - DATABASE_NAME=hubbi_parts_db
+      - DATABASE_USER=hubbi_user
+      - DATABASE_PASSWORD=hubbi_password
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - EXTERNAL_API_KEY=${EXTERNAL_API_KEY}
+    volumes:
+      - .:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: hubbi_celery
+    command: celery -A config worker -l info
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-change-this-in-production
+      - ALLOWED_HOSTS=localhost,127.0.0.1,web
+      - DATABASE_ENGINE=django.db.backends.postgresql
+      - DATABASE_NAME=hubbi_parts_db
+      - DATABASE_USER=hubbi_user
+      - DATABASE_PASSWORD=hubbi_password
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - EXTERNAL_API_KEY=${EXTERNAL_API_KEY}
+    volumes:
+      - .:/app
+    depends_on:
+      - postgres
+      - redis
+      - web
+
+  celery-beat:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: hubbi_celery_beat
+    command: celery -A config beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-change-this-in-production
+      - ALLOWED_HOSTS=localhost,127.0.0.1,web
+      - DATABASE_ENGINE=django.db.backends.postgresql
+      - DATABASE_NAME=hubbi_parts_db
+      - DATABASE_USER=hubbi_user
+      - DATABASE_PASSWORD=hubbi_password
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - EXTERNAL_API_KEY=${EXTERNAL_API_KEY}
+    volumes:
+      - .:/app
+    depends_on:
+      - postgres
+      - redis
+      - web
+
+volumes:
+  postgres_data:
+  redis_data:
