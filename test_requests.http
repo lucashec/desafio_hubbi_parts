@@ -1,5 +1,5 @@
 @baseUrl = http://localhost:8000/api
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzgyOTYwNjE5LCJpYXQiOjE3ODI5NTcwMTksImp0aSI6IjgzYjliMmY3N2FkNTQzNDY4NTFiYjRlNTdlNmQ2ZGU4IiwidXNlcl9pZCI6IjciLCJ1c2VybmFtZSI6Im5ld3VzZXIiLCJlbWFpbCI6Im5ld3VzZXJAZXhhbXBsZS5jb20iLCJpc19zdGFmZiI6ZmFsc2V9.6F7SHLeEjMw5zIch7JRMhMiD2Gqz2BO7sjGfacJCxW
+
 @apiKey = test-api-key-12345
 
 ###############################################################################
