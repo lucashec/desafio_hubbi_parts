@@ -67,3 +67,5 @@ docker-down:
 
 docker-logs:
 	docker-compose logs -f web
+create-superuser:
+	python manage.py shell -c 'from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser("admin", "admin@example.com", "admin123")'

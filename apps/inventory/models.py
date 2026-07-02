@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 from django.contrib.auth import get_user_model
+from pgvector.django import VectorField
 from core.validators import validate_positive_number
 
 
@@ -39,10 +40,11 @@ class Part(models.Model):
         blank=True,
         related_name="parts"
     )
-    embedding = models.BinaryField(
+    embedding = VectorField(
+        dimensions=384,
         null=True,
         blank=True,
-        help_text="Vector embedding for semantic search (RAG)"
+        help_text="Vector embedding for semantic search (RAG) - 384-dimensional (all-MiniLM-L6-v2)"
     )
     embedding_model = models.CharField(
         max_length=100,

@@ -1,6 +1,6 @@
 import numpy as np
 import logging
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from sentence_transformers import SentenceTransformer
 from django.conf import settings
@@ -19,15 +19,15 @@ class EmbeddingService:
             self.available = False
             self.model = None
     
-    def generate_embedding(self, text: str) -> Optional[bytes]:
-        """Generate embedding for a given text."""
+    def generate_embedding(self, text: str) -> Optional[List[float]]:
+        """Generate embedding for a given text as list (pgvector compatible)."""
         if not self.available or not self.model:
             logger.warning("Embedding service not available")
             return None
         
         try:
             embedding = self.model.encode(text, convert_to_numpy=True)
-            return embedding.astype(np.float32).tobytes()
+            return embedding.astype(np.float32).tolist()
         except Exception as e:
             logger.error(f"Error generating embedding: {str(e)}")
             return None
@@ -42,18 +42,6 @@ class EmbeddingService:
             return embedding.astype(np.float32)
         except Exception as e:
             logger.error(f"Error generating embedding: {str(e)}")
-            return None
-    
-    def bytes_to_array(self, embedding_bytes: bytes) -> np.ndarray:
-        """Convert embedding bytes back to numpy array."""
-        if not embedding_bytes:
-            return None
-        
-        try:
-            dtype = np.float32
-            return np.frombuffer(embedding_bytes, dtype=dtype)
-        except Exception as e:
-            logger.error(f"Error converting bytes to array: {str(e)}")
             return None
     
     def compute_similarity(self, vec1: np.ndarray, vec2: np.ndarray) -> float:

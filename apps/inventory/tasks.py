@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 def process_csv_upload(self, csv_upload_id):
     """
     Processa um arquivo CSV enviado pelo usuário.
-    Importa peças, fornecedores e alternativas.
+    Importa peças, fornecedores e gera embeddings automaticamente.
     """
     try:
         csv_upload = CSVUpload.objects.get(id=csv_upload_id)
@@ -23,6 +23,7 @@ def process_csv_upload(self, csv_upload_id):
         file_path = csv_upload.file.path
         rows_processed = 0
         rows_failed = 0
+        parts_created = []
         
         with open(file_path, 'r', encoding='utf-8') as csvfile:
             reader = csv.DictReader(csvfile)
@@ -83,6 +84,7 @@ def process_csv_upload(self, csv_upload_id):
                         part.supplier = supplier
                         part.save()
                     
+                    parts_created.append(part.id)
                     rows_processed += 1
                 
                 except Exception as e:
@@ -100,6 +102,10 @@ def process_csv_upload(self, csv_upload_id):
             f"Processed {rows_processed} rows, {rows_failed} failed"
         )
         
+        if parts_created:
+            generate_embeddings_for_parts.delay(parts_created)
+            logger.info(f"Queued embedding generation for {len(parts_created)} parts")
+        
     except CSVUpload.DoesNotExist:
         logger.error(f"CSVUpload with id {csv_upload_id} not found")
     except Exception as e:
@@ -107,6 +113,30 @@ def process_csv_upload(self, csv_upload_id):
         csv_upload.status = "error"
         csv_upload.error_message = str(e)
         csv_upload.save()
+
+
+@shared_task
+def generate_embeddings_for_parts(part_ids):
+    """
+    Generates embeddings for multiple parts.
+    Called after CSV import to create embeddings for all new/updated parts.
+    """
+    if not part_ids:
+        return {"success": 0, "failed": 0}
+    
+    success = 0
+    failed = 0
+    
+    for part_id in part_ids:
+        try:
+            result = generate_part_embedding.delay(part_id)
+            success += 1
+        except Exception as e:
+            logger.error(f"Failed to queue embedding for part {part_id}: {str(e)}")
+            failed += 1
+    
+    logger.info(f"Queued embeddings for {success} parts, {failed} failed")
+    return {"success": success, "failed": failed}
 
 
 @shared_task

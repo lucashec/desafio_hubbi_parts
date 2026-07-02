@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:15-alpine
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.postgres
     container_name: hubbi_postgres
     environment:
       POSTGRES_DB: hubbi_parts_db

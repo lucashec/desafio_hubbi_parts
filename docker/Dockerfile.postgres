@@ -1,0 +1,5 @@
+FROM pgvector/pgvector:0.8.4-pg15
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates && \
+    rm -rf /var/lib/apt/lists/*

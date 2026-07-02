@@ -25,6 +25,8 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "corsheaders",
     "django_filters",
+    "pgvector.django",
+    "django_celery_beat",
     "apps.accounts",
     "apps.inventory",
     "apps.consultant",

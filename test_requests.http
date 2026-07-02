@@ -37,7 +37,7 @@ POST {{baseUrl}}/token/
 Content-Type: application/json
 
 {
-  "username": "admin@example.com",
+  "username": "admin",
   "password": "admin123"
 }
 
