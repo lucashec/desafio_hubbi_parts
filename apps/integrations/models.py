@@ -1,9 +1,11 @@
 from django.db import models
-import uuid
+import secrets
 
+def generate_api_key():
+    return secrets.token_urlsafe(32)
 
 class ApiKey(models.Model):
-    key = models.CharField(max_length=255, unique=True, default=uuid.uuid4)
+    key = models.CharField(max_length=255, unique=True, default=generate_api_key)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)

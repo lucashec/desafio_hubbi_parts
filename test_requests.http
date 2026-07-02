@@ -1,6 +1,6 @@
 @baseUrl = http://localhost:8000/api
 
-@apiKey = test-api-key-12345
+@apiKey = 2fa4f07a-a186-4251-badd-f3c7dc868800
 
 ### Register a new user
 POST {{baseUrl}}/auth/register/
@@ -50,10 +50,6 @@ Authorization: Bearer {{login.response.body.access}}
 GET {{baseUrl}}/parts/?search=Motor
 Authorization: Bearer {{login.response.body.access}}
 
-### Filter parts by supplier
-GET {{baseUrl}}/parts/?supplier=1
-Authorization: Bearer {{login.response.body.access}}
-
 ### Filter parts by quantity (in stock)
 GET {{baseUrl}}/parts/?quantity__gt=13
 Authorization: Bearer {{login.response.body.access}}
@@ -83,8 +79,7 @@ Content-Type: application/json
   "name": "Motor V8 3.0L",
   "description": "High performance V8 engine for sports cars",
   "price": 5000.00,
-  "quantity": 10,
-  "supplier": 1
+  "quantity": 10
 }
 
 ### Create another part
@@ -96,8 +91,7 @@ Content-Type: application/json
   "name": "Turbocharger Garrett",
   "description": "Premium turbocharged engine component",
   "price": 3500.00,
-  "quantity": 5,
-  "supplier": 2
+  "quantity": 5
 }
 
 ### Create multiple parts
@@ -109,8 +103,7 @@ Content-Type: application/json
   "name": "Air Filter K&N",
   "description": "Reusable high flow air filter",
   "price": 150.00,
-  "quantity": 25,
-  "supplier": 1
+  "quantity": 25
 }
 
 ### Update part (full)
@@ -122,8 +115,7 @@ Content-Type: application/json
   "name": "Motor 1.0 3 cilindros",
   "description": "Updated high performance V8 engine",
   "price": 10000.00,
-  "quantity": 1,
-  "supplier": 1
+  "quantity": 1
 }
 
 ### Partial update part
@@ -214,8 +206,7 @@ Authorization: Bearer {{login.response.body.access}}
 Content-Type: application/json
 
 {
-  "name": "External ERP System",
-  "key": "custom-api-key-12345"
+  "name": "External ERP System"
 }
 
 ### Get specific API Key
@@ -229,7 +220,6 @@ Content-Type: application/json
 
 {
   "name": "Updated ERP Integration",
-  "key": "new-api-key-67890"
 }
 
 ### Disable API Key
@@ -247,7 +237,7 @@ Authorization: Bearer {{login.response.body.access}}
 
 ### External API: Search parts (using API Key)
 GET {{baseUrl}}/external/parts/search/?query=motor
-X-API-Key: {{apiKey}}
+X-API-Key: 2fa4f07a-a186-4251-badd-f3c7dc868800
 
 ### External API: Search parts with pagination
 GET {{baseUrl}}/external/parts/search/?query=turbo&limit=10
@@ -264,7 +254,7 @@ Content-Type: application/json
 
 {
   "part_id": 1,
-  "quantity_adjustment": -5,
+  "quantity_delta": 5,
   "reason": "Venda externa ERP"
 }
 
@@ -303,7 +293,7 @@ GET {{baseUrl}}/integration-logs/?ordering=-timestamp
 Authorization: Bearer {{login.response.body.access}}
 
 ### Search parts by multiple criteria
-GET {{baseUrl}}/parts/?search=Motor&supplier=1&quantity__gt=5&ordering=-price
+GET {{baseUrl}}/parts/?search=Motor&quantity__gt=5&ordering=-price
 Authorization: Bearer {{login.response.body.access}}
 
 ### Full text search in description
@@ -350,8 +340,7 @@ Content-Type: application/json
   "name": "Test Part",
   "description": "Invalid price",
   "price": -100.00,
-  "quantity": 5,
-  "supplier": 1
+  "quantity": 5
 }
 
 ### Get non-existent part (404)

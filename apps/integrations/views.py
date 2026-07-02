@@ -14,12 +14,7 @@ from apps.inventory.models import Part
 from apps.inventory.serializers import PartSerializer
 
 
-class ApiKeyViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet para gerenciar API Keys.
-    Admins podem criar, listar, atualizar e deletar API Keys.
-    """
-    
+class ApiKeyViewSet(viewsets.ModelViewSet):    
     queryset = ApiKey.objects.all()
     serializer_class = ApiKeySerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
@@ -31,10 +26,6 @@ class ApiKeyViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated, IsAdminUser])
     def deactivate(self, request, pk=None):
-        """
-        Desativa uma API Key.
-        POST /api/api-keys/{id}/deactivate/
-        """
         api_key = self.get_object()
         api_key.is_active = False
         api_key.save()
@@ -43,10 +34,6 @@ class ApiKeyViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated, IsAdminUser])
     def activate(self, request, pk=None):
-        """
-        Ativa uma API Key.
-        POST /api/api-keys/{id}/activate/
-        """
         api_key = self.get_object()
         api_key.is_active = True
         api_key.save()
@@ -54,12 +41,7 @@ class ApiKeyViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class IntegrationLogViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    ViewSet para visualizar logs de integração.
-    Apenas leitura, filtrado por API Key.
-    """
-    
+class IntegrationLogViewSet(viewsets.ReadOnlyModelViewSet):    
     queryset = IntegrationLog.objects.all()
     serializer_class = IntegrationLogSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
@@ -70,22 +52,10 @@ class IntegrationLogViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class ExternalPartSearchView(APIView):
-    """
-    API externa para buscar peças.
-    Requer autenticação via API Key (header X-API-Key).
-    """
-    
     authentication_classes = [ApiKeyAuthentication]
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
-        """
-        GET /api/external/parts/search/?query=motor
-        
-        Query parameters:
-        - query: termo de busca (obrigatório)
-        - limit: número máximo de resultados (padrão: 10)
-        """
         query = request.query_params.get('query', '').strip()
         limit = int(request.query_params.get('limit', 10))
         
@@ -120,19 +90,11 @@ class ExternalPartSearchView(APIView):
         })
 
 
-class ExternalPartDetailView(APIView):
-    """
-    API externa para obter detalhes de uma peça.
-    Requer autenticação via API Key (header X-API-Key).
-    """
-    
+class ExternalPartDetailView(APIView):    
     authentication_classes = [ApiKeyAuthentication]
     permission_classes = [IsAuthenticated]
     
     def get(self, request, part_id):
-        """
-        GET /api/external/parts/{part_id}/
-        """
         start_time = time.time()
         api_key = request.auth
         
@@ -169,24 +131,10 @@ class ExternalPartDetailView(APIView):
 
 
 class ExternalInventoryUpdateView(APIView):
-    """
-    API externa para atualizar quantidade em estoque.
-    Requer autenticação via API Key (header X-API-Key).
-    """
-    
     authentication_classes = [ApiKeyAuthentication]
     permission_classes = [IsAuthenticated]
     
     def post(self, request):
-        """
-        POST /api/external/inventory/update/
-        
-        Body:
-        {
-            "part_id": 1,
-            "quantity_delta": 5  // Pode ser negativo para diminuir
-        }
-        """
         start_time = time.time()
         api_key = request.auth
         
@@ -255,10 +203,6 @@ class ExternalInventoryUpdateView(APIView):
 
 
 class StockUpdateView(APIView):
-    """
-    Endpoint para atualizar estoque via integração externa.
-    """
-
     def put(self, request):
         return Response(
             {"message": "Atualização de estoque será implementada na próxima etapa"},

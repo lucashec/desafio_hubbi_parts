@@ -5,7 +5,7 @@ from .models import ApiKey, IntegrationLog
 class ApiKeySerializer(serializers.ModelSerializer):
     class Meta:
         model = ApiKey
-        fields = ["id", "name", "is_active", "created_at", "last_used_at"]
+        fields = ["id", "key", "name", "is_active", "created_at", "last_used_at"]
 
 
 class IntegrationLogSerializer(serializers.ModelSerializer):
