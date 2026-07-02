@@ -8,22 +8,6 @@ from core.validators import validate_positive_number
 User = get_user_model()
 
 
-class Supplier(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-    catalog_url = models.URLField(blank=True)
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name = "Fornecedor"
-        verbose_name_plural = "Fornecedores"
-        ordering = ["name"]
-
-    def __str__(self) -> str:
-        return self.name
-
-
 class Part(models.Model):
     name = models.CharField(max_length=255, db_index=True)
     description = models.TextField(blank=True)
@@ -33,13 +17,6 @@ class Part(models.Model):
         validators=[MinValueValidator(0.01)]
     )
     quantity = models.IntegerField(default=0, validators=[validate_positive_number])
-    supplier = models.ForeignKey(
-        Supplier,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="parts"
-    )
     embedding = VectorField(
         dimensions=384,
         null=True,
@@ -65,7 +42,6 @@ class Part(models.Model):
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["name"]),
-            models.Index(fields=["supplier"]),
             models.Index(fields=["-created_at"]),
         ]
 

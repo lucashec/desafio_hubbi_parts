@@ -11,18 +11,29 @@ logger = logging.getLogger(__name__)
 class EmbeddingService:
     def __init__(self, model_name: str = "sentence-transformers/all-MiniLM-L6-v2"):
         self.model_name = model_name
-        try:
-            self.model = SentenceTransformer(model_name)
-            self.available = True
-        except Exception as e:
-            logger.error(f"Failed to load embedding model: {str(e)}")
-            self.available = False
-            self.model = None
+        self.model = None
+        self.available = True
+    
+    def _ensure_model_loaded(self):
+        """Lazy-load model on first use to avoid unnecessary loading."""
+        if self.model is None:
+            try:
+                logger.info(f"Loading embedding model: {self.model_name}")
+                self.model = SentenceTransformer(self.model_name)
+            except Exception as e:
+                logger.error(f"Failed to load embedding model: {str(e)}")
+                self.available = False
+                self.model = None
     
     def generate_embedding(self, text: str) -> Optional[List[float]]:
         """Generate embedding for a given text as list (pgvector compatible)."""
-        if not self.available or not self.model:
+        if not self.available:
             logger.warning("Embedding service not available")
+            return None
+        
+        self._ensure_model_loaded()
+        
+        if not self.model:
             return None
         
         try:
@@ -34,7 +45,12 @@ class EmbeddingService:
     
     def generate_embedding_array(self, text: str) -> Optional[np.ndarray]:
         """Generate embedding as numpy array."""
-        if not self.available or not self.model:
+        if not self.available:
+            return None
+        
+        self._ensure_model_loaded()
+        
+        if not self.model:
             return None
         
         try:

@@ -1,8 +1,8 @@
 import logging
 import numpy as np
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 from apps.inventory.models import Part
-from .embedding_service import get_embedding_service
+from .embedding_service import EmbeddingService
 from django.db.models import F
 
 logger = logging.getLogger(__name__)
@@ -11,8 +11,14 @@ logger = logging.getLogger(__name__)
 class VectorSearchService:
     """Service for semantic search using embeddings (RAG) with pgvector."""
     
-    def __init__(self):
-        self.embedding_service = get_embedding_service()
+    def __init__(self, model=None):
+        if model is not None:
+            self.embedding_service = EmbeddingService()
+            self.embedding_service.model = model
+            self.embedding_service.available = True
+        else:
+            from .embedding_service import get_embedding_service
+            self.embedding_service = get_embedding_service()
     
     def search_parts_by_query(self, query: str, top_k: int = 10, min_score: float = 0.3) -> List[Dict]:
         """
@@ -55,7 +61,6 @@ class VectorSearchService:
                         "description": part.description,
                         "price": str(part.price),
                         "quantity": part.quantity,
-                        "supplier": part.supplier.name if part.supplier else "Unknown",
                         "similarity_score": float(similarity)
                     })
             
@@ -122,7 +127,6 @@ class VectorSearchService:
                     "description": part.description,
                     "price": str(part.price),
                     "quantity": part.quantity,
-                    "supplier": part.supplier.name if part.supplier else "Unknown",
                     "similarity_score": float(score) / 100.0
                 })
             except Part.DoesNotExist:

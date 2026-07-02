@@ -2,10 +2,6 @@
 
 @apiKey = test-api-key-12345
 
-###############################################################################
-# 1. AUTHENTICATION ENDPOINTS
-###############################################################################
-
 ### Register a new user
 POST {{baseUrl}}/auth/register/
 Content-Type: application/json
@@ -41,91 +37,6 @@ Content-Type: application/json
   "password": "admin123"
 }
 
-
-### Get User Profile
-GET {{baseUrl}}/auth/profile/
-Authorization: Bearer {{login.response.body.access}}
-
-### Update User Profile
-PUT {{baseUrl}}/auth/profile/
-Authorization: Bearer {{login.response.body.access}}
-Content-Type: application/json
-
-{
-  "first_name": "John",
-  "last_name": "Updated",
-  "bio": "Automotive enthusiast"
-}
-
-### List all suppliers
-GET {{baseUrl}}/suppliers/
-Authorization: Bearer {{login.response.body.access}}
-
-### List suppliers with pagination
-GET {{baseUrl}}/suppliers/?page=1&page_size=10
-Authorization: Bearer {{login.response.body.access}}
-
-### Search suppliers by name
-GET {{baseUrl}}/suppliers/?search=Bosch
-Authorization: Bearer {{login.response.body.access}}
-
-### Sort suppliers by name
-GET {{baseUrl}}/suppliers/?ordering=name
-Authorization: Bearer {{login.response.body.access}}
-
-### Get a specific supplier
-GET {{baseUrl}}/suppliers/1/
-Authorization: Bearer {{login.response.body.access}}
-
-### Create a new supplier (Admin only)
-POST {{baseUrl}}/suppliers/
-Authorization: Bearer {{login.response.body.access}}
-Content-Type: application/json
-
-{
-  "name": "McPearse Automotive",
-  "catalog_url": "https://bosch.example.com/catalog",
-  "is_active": true
-}
-
-### Create another supplier
-POST {{baseUrl}}/suppliers/
-Authorization: Bearer {{login.response.body.access}}
-Content-Type: application/json
-
-{
-  "name": "Magneti Marelli",
-  "catalog_url": "https://magnetimarelli.example.com",
-  "is_active": true
-}
-
-### Update supplier
-PUT {{baseUrl}}/suppliers/1/
-Authorization: Bearer {{login.response.body.access}}
-Content-Type: application/json
-
-{
-  "name": "Bosch Automotive Updated",
-  "catalog_url": "https://bosch.example.com/updated",
-  "is_active": true
-}
-
-### Partial update supplier
-PATCH {{baseUrl}}/suppliers/1/
-Authorization: Bearer {{login.response.body.access}}
-Content-Type: application/json
-
-{
-  "is_active": false
-}
-
-### Delete supplier
-DELETE {{baseUrl}}/suppliers/1/
-Authorization: Bearer {{login.response.body.access}}
-
-###############################################################################
-# 3. PARTS ENDPOINTS
-###############################################################################
 
 ### List all parts
 GET {{baseUrl}}/parts/
@@ -229,10 +140,6 @@ Content-Type: application/json
 DELETE {{baseUrl}}/parts/1/
 Authorization: Bearer {{login.response.body.access}}
 
-###############################################################################
-# 4. CSV UPLOAD ENDPOINTS
-###############################################################################
-
 ### List all CSV uploads
 GET {{baseUrl}}/csv-uploads/
 Authorization: Bearer {{login.response.body.access}}
@@ -258,10 +165,17 @@ Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
 Content-Disposition: form-data; name="file"; filename="parts.csv"
 Content-Type: text/csv
 
-name,price,quantity,supplier_name,description
-Motor V8 3.0L,5000.00,10,Bosch Automotive,High performance engine
-Turbo Garrett,3500.00,5,Magneti Marelli,Premium turbocharger
-Air Filter K&N,150.00,25,Bosch Automotive,Reusable air filter
+nome,descricao,preco,quantidade_inicial
+Filtro de Óleo,Filtro para retenção de impurezas no óleo do motor,45.90,50
+Pastilha de Freio Dianteira,Conjunto de pastilhas para freio a disco dianteiro,189.90,30
+Correia Dentada,Correia de distribuição do motor 1.0/1.4,98.50,25
+Amortecedor Dianteiro Esquerdo,Amortecedor hidráulico para suspensão dianteira esquerda,320.00,15
+Vela de Ignição,Vela de ignição NGK para motores flex,22.00,100
+Bomba d'Água,Bomba de circulação do líquido de arrefecimento,210.00,20
+Rolamento de Roda Traseira,Rolamento com cubo para roda traseira,145.00,18
+Embreagem Completa,Kit de embreagem com disco platô e rolamento,650.00,10
+Bateria 60Ah,Bateria automotiva 60Ah 12V com carga,380.00,12
+Radiador,Radiador de alumínio para arrefecimento do motor,490.00,8
 
 ------WebKitFormBoundary--
 
@@ -269,36 +183,14 @@ Air Filter K&N,150.00,25,Bosch Automotive,Reusable air filter
 GET {{baseUrl}}/csv-uploads/?ordering=-created_at
 Authorization: Bearer {{login.response.body.access}}
 
-###############################################################################
-# 5. CONSULTANT (IA) ENDPOINTS
-###############################################################################
-
 ### Query the AI Consultant
 POST {{baseUrl}}/consultor/
 Authorization: Bearer {{login.response.body.access}}
 Content-Type: application/json
 
 {
-  "query": "I need a motor for my sports car, preferably V8"
-}
-
-### Another AI Consultant query
-POST {{baseUrl}}/consultor/
-Authorization: Bearer {{login.response.body.access}}
-Content-Type: application/json
-
-{
-  "query": "Recomend a turbocharger for high performance applications"
-}
-
-### Simple parts search query
-POST {{baseUrl}}/consultor/
-Authorization: Bearer {{login.response.body.access}}
-Content-Type: application/json
-
-{
-  "query": "What filters do you have available?"
-}
+  "query": "meu carro está fazendo barulho na roda"
+} 
 
 ### Get consultant query history
 GET {{baseUrl}}/consultor/historico/
@@ -311,10 +203,6 @@ Authorization: Bearer {{login.response.body.access}}
 ### Filter history by user (optional)
 GET {{baseUrl}}/consultor/historico/?ordering=-created_at
 Authorization: Bearer {{login.response.body.access}}
-
-###############################################################################
-# 6. EXTERNAL API INTEGRATION ENDPOINTS
-###############################################################################
 
 ### List API Keys (Admin only)
 GET {{baseUrl}}/api-keys/
@@ -414,10 +302,6 @@ Authorization: Bearer {{login.response.body.access}}
 GET {{baseUrl}}/integration-logs/?ordering=-timestamp
 Authorization: Bearer {{login.response.body.access}}
 
-###############################################################################
-# 7. ADVANCED SEARCH & FILTERING
-###############################################################################
-
 ### Search parts by multiple criteria
 GET {{baseUrl}}/parts/?search=Motor&supplier=1&quantity__gt=5&ordering=-price
 Authorization: Bearer {{login.response.body.access}}
@@ -437,10 +321,6 @@ Authorization: Bearer {{login.response.body.access}}
 ### Get parts with high stock
 GET {{baseUrl}}/parts/?quantity__gt=20&ordering=name
 Authorization: Bearer {{login.response.body.access}}
-
-###############################################################################
-# 8. ERROR CASES & EDGE CASES
-###############################################################################
 
 ### Try to access without token (should fail)
 GET {{baseUrl}}/parts/
@@ -489,40 +369,4 @@ Content-Type: application/json
 
 ### Delete non-existent part (404)
 DELETE {{baseUrl}}/parts/99999/
-Authorization: Bearer {{login.response.body.access}}
-
-###############################################################################
-# 9. BULK OPERATIONS
-###############################################################################
-
-### Create supplier bulk import (via CSV)
-POST {{baseUrl}}/csv-uploads/
-Authorization: Bearer {{login.response.body.access}}
-Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
-
-------WebKitFormBoundary
-Content-Disposition: form-data; name="file"; filename="suppliers.csv"
-Content-Type: text/csv
-
-name,catalog_url
-New Supplier 1,https://supplier1.example.com
-New Supplier 2,https://supplier2.example.com
-New Supplier 3,https://supplier3.example.com
-
-------WebKitFormBoundary--
-
-###############################################################################
-# 10. PERFORMANCE TESTING
-###############################################################################
-
-### List large result set
-GET {{baseUrl}}/parts/?page=1&page_size=100
-Authorization: Bearer {{login.response.body.access}}
-
-### Complex search query
-GET {{baseUrl}}/parts/?search=motor&supplier=1&ordering=-price&page_size=50
-Authorization: Bearer {{login.response.body.access}}
-
-### Get consultant history (potentially large)
-GET {{baseUrl}}/consultor/historico/?page_size=50&ordering=-created_at
 Authorization: Bearer {{login.response.body.access}}

@@ -1,17 +1,12 @@
 from rest_framework import serializers
-from .models import Part, Supplier, CSVUpload
+from .models import Part, CSVUpload
 
 
 class PartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Part
-        fields = ["id", "name", "description", "price", "quantity", "supplier", "created_at", "updated_at"]
+        fields = ["id", "name", "description", "price", "quantity", "embedding_model", "embedding_updated_at", "created_at", "updated_at"]
 
-
-class SupplierSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Supplier
-        fields = ["id", "name", "catalog_url", "created_at"]
 
 class CSVUploadSerializer(serializers.ModelSerializer):
     class Meta:

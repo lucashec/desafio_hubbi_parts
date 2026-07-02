@@ -1,20 +1,13 @@
 from django.contrib import admin
-from .models import Part, Supplier, CSVUpload
+from .models import Part, CSVUpload
 
 
 @admin.register(Part)
 class PartAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "price", "quantity", "supplier", "created_at")
-    list_filter = ("supplier", "created_at")
+    list_display = ("id", "name", "price", "quantity", "created_at")
+    list_filter = ("created_at",)
     search_fields = ("name", "description")
     ordering = ("-created_at",)
-
-
-@admin.register(Supplier)
-class SupplierAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "created_at")
-    search_fields = ("name",)
-    ordering = ("name",)
 
 
 @admin.register(CSVUpload)

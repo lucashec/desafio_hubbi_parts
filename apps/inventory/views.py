@@ -2,32 +2,11 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from .models import Part, Supplier, CSVUpload
-from .serializers import PartSerializer, SupplierSerializer, CSVUploadSerializer, CSVUploadStatusSerializer
+from .models import Part, CSVUpload
+from .serializers import PartSerializer, CSVUploadSerializer, CSVUploadStatusSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from .tasks import process_csv_upload
-
-
-class SupplierViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet para gerenciar fornecedores.
-    """
-
-    queryset = Supplier.objects.all()
-    serializer_class = SupplierSerializer
-    permission_classes = [IsAuthenticated]
-    filter_backends = [SearchFilter, OrderingFilter]
-    search_fields = ["name"]
-    ordering_fields = ["created_at", "name"]
-    ordering = ["name"]
-
-    def get_permissions(self):
-        if self.action in ["create", "update", "destroy"]:
-            permission_classes = [IsAuthenticated, IsAdminUser]
-        else:
-            permission_classes = [IsAuthenticated]
-        return [permission() for permission in permission_classes]
 
 
 class PartViewSet(viewsets.ModelViewSet):
@@ -37,11 +16,11 @@ class PartViewSet(viewsets.ModelViewSet):
     Usuários autenticados podem listar e visualizar.
     """
 
-    queryset = Part.objects.select_related("supplier").all()
+    queryset = Part.objects.all()
     serializer_class = PartSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ["supplier", "quantity"]
+    filterset_fields = ["quantity"]
     search_fields = ["name", "description"]
     ordering_fields = ["created_at", "price", "name"]
     ordering = ["-created_at"]
