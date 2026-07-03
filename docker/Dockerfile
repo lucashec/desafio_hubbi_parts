@@ -33,6 +33,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN apt-get update && apt-get install -y \
     libpq5 \
     postgresql-client \
+    make \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /wheels /wheels
