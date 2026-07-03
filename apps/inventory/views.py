@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
+from drf_spectacular.utils import extend_schema
 from .models import Part, CSVUpload
 from .serializers import PartSerializer, CSVUploadSerializer, CSVUploadStatusSerializer
 from django_filters.rest_framework import DjangoFilterBackend

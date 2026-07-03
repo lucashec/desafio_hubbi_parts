@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema
 import time
 
 from .models import ApiKey, IntegrationLog
@@ -204,6 +205,10 @@ class ExternalInventoryUpdateView(APIView):
 
 
 class StockUpdateView(APIView):
+    @extend_schema(
+      request={'multipart/form-data': {'type': 'object', 'properties': {'file': {'type': 'string', 'format': 'binary'}}}},
+      summary="Upload CSV file for batch parts import"
+    )
     def put(self, request):
         return Response(
             {"message": "Atualização de estoque será implementada na próxima etapa"},

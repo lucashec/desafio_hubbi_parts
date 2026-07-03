@@ -135,7 +135,7 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Minha API",
+    "TITLE": "Desafio - Hubbi Parts",
     "VERSION": "1.0.0",
     "SECURITY": [
         {
