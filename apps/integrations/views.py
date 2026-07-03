@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 import time
 
 from .models import ApiKey, IntegrationLog
@@ -57,6 +57,36 @@ class ExternalPartSearchView(APIView):
     authentication_classes = [ApiKeyAuthentication]
     permission_classes = [IsAuthenticated]
     
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="query",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                required=True,
+                description="Search query for parts"
+            ),
+            OpenApiParameter(
+                name="limit",
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description="Maximum number of results (default: 10)"
+            )
+        ],
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'count': {'type': 'integer'},
+                    'results': {
+                        'type': 'array',
+                        'items': {'type': 'object'}
+                    }
+                }
+            }
+        }
+    )
     def get(self, request):
         query = request.query_params.get('query', '').strip()
         limit = int(request.query_params.get('limit', 10))
@@ -96,6 +126,29 @@ class ExternalPartDetailView(APIView):
     authentication_classes = [ApiKeyAuthentication]
     permission_classes = [IsAuthenticated]
     
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="part_id",
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description="Part ID"
+            )
+        ],
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'id': {'type': 'integer'},
+                    'name': {'type': 'string'},
+                    'price': {'type': 'string'},
+                    'quantity': {'type': 'integer'}
+                }
+            },
+            404: {'type': 'object', 'properties': {'error': {'type': 'string'}}}
+        }
+    )
     def get(self, request, part_id):
         start_time = time.time()
         api_key = request.auth
@@ -136,6 +189,28 @@ class ExternalInventoryUpdateView(APIView):
     authentication_classes = [ApiKeyAuthentication]
     permission_classes = [IsAuthenticated]
     
+    @extend_schema(
+        request={
+            'type': 'object',
+            'properties': {
+                'part_id': {'type': 'integer', 'description': 'Part ID'},
+                'quantity_delta': {'type': 'integer', 'description': 'Quantity change (positive or negative)'}
+            },
+            'required': ['part_id', 'quantity_delta']
+        },
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'id': {'type': 'integer'},
+                    'name': {'type': 'string'},
+                    'quantity': {'type': 'integer'}
+                }
+            },
+            400: {'type': 'object', 'properties': {'error': {'type': 'string'}}},
+            404: {'type': 'object', 'properties': {'error': {'type': 'string'}}}
+        }
+    )
     def post(self, request):
         start_time = time.time()
         api_key = request.auth
@@ -206,8 +281,35 @@ class ExternalInventoryUpdateView(APIView):
 
 class StockUpdateView(APIView):
     @extend_schema(
-      request={'multipart/form-data': {'type': 'object', 'properties': {'file': {'type': 'string', 'format': 'binary'}}}},
-      summary="Upload CSV file for batch parts import"
+        summary="Upload CSV file for batch parts import",
+        request={
+            'multipart/form-data': {
+                'type': 'object',
+                'properties': {
+                    'file': {
+                        'type': 'string',
+                        'format': 'binary'
+                    }
+                }
+            }
+        },
+        parameters=[
+            OpenApiParameter(
+                name="X_API_Key",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.HEADER,
+                required=True,
+                description="API Key"
+            )
+        ],
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'message': {'type': 'string'}
+                }
+            }
+        }
     )
     def put(self, request):
         return Response(

@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiTypes
 from .models import Part, CSVUpload
 from .serializers import PartSerializer, CSVUploadSerializer, CSVUploadStatusSerializer
 from django_filters.rest_framework import DjangoFilterBackend
@@ -34,6 +34,23 @@ class PartViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
+    @extend_schema(
+        responses={
+            200: {
+                'type': 'array',
+                'items': {
+                    'type': 'object',
+                    'properties': {
+                        'id': {'type': 'integer'},
+                        'name': {'type': 'string'},
+                        'description': {'type': 'string'},
+                        'price': {'type': 'string'},
+                        'quantity': {'type': 'integer'}
+                    }
+                }
+            }
+        }
+    )
     def available(self, request):
         """
         Retorna apenas peças disponíveis em estoque.
@@ -66,7 +83,19 @@ class CSVUploadViewSet(viewsets.ModelViewSet):
     
     @extend_schema(
         request={'multipart/form-data': {'type': 'object', 'properties': {'file': {'type': 'string', 'format': 'binary'}}}},
-        summary="Upload CSV file for batch parts import"
+        summary="Upload CSV file for batch parts import",
+        responses={
+            201: {
+                'type': 'object',
+                'properties': {
+                    'id': {'type': 'integer'},
+                    'file': {'type': 'string'},
+                    'status': {'type': 'string'},
+                    'uploaded_by': {'type': 'integer'},
+                    'created_at': {'type': 'string', 'format': 'date-time'}
+                }
+            }
+        }
     )
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
@@ -76,6 +105,22 @@ class CSVUploadViewSet(viewsets.ModelViewSet):
         process_csv_upload.delay(csv_upload.id)
     
     @action(detail=True, methods=["get"], permission_classes=[IsAuthenticated])
+    @extend_schema(
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'id': {'type': 'integer'},
+                    'status': {'type': 'string'},
+                    'total_rows': {'type': 'integer'},
+                    'processed_rows': {'type': 'integer'},
+                    'failed_rows': {'type': 'integer'},
+                    'created_at': {'type': 'string', 'format': 'date-time'},
+                    'updated_at': {'type': 'string', 'format': 'date-time'}
+                }
+            }
+        }
+    )
     def status(self, request, pk=None):
         """
         Retorna o status de processamento de um upload CSV.
