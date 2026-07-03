@@ -23,6 +23,7 @@ class ApiKeyViewSet(viewsets.ModelViewSet):
     search_fields = ["name", "description"]
     ordering_fields = ["created_at", "last_used_at"]
     ordering = ["-created_at"]
+    http_method_names = ["get", "post", "head", "options", "trace"]
     
     @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated, IsAdminUser])
     def deactivate(self, request, pk=None):

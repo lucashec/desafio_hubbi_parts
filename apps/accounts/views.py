@@ -58,11 +58,6 @@ class ProfileView(APIView):
 
 
 class LogoutView(APIView):
-    """
-    Endpoint para logout (blacklist do refresh token).
-    POST /api/auth/logout/
-    """
-
     permission_classes = [IsAuthenticated]
 
     def post(self, request):

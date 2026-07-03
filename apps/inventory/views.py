@@ -2,6 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 from .models import Part, CSVUpload
 from .serializers import PartSerializer, CSVUploadSerializer, CSVUploadStatusSerializer
 from django_filters.rest_framework import DjangoFilterBackend
@@ -46,9 +47,8 @@ class PartViewSet(viewsets.ModelViewSet):
 class CSVUploadViewSet(viewsets.ModelViewSet):
     """
     ViewSet para gerenciar uploads de CSV assincronos.
-    Admins podem upload arquivos CSV para importar peças em massa.
+    Admins fazem o upload arquivos CSV para importar peças em massa.
     """
-    
     queryset = CSVUpload.objects.all()
     serializer_class = CSVUploadSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
@@ -56,12 +56,20 @@ class CSVUploadViewSet(viewsets.ModelViewSet):
     filterset_fields = ["status"]
     ordering_fields = ["created_at", "status"]
     ordering = ["-created_at"]
+    http_method_names = ["get", "post", "head", "options", "trace"]
     
     def get_queryset(self):
         queryset = super().get_queryset()
         if not self.request.user.is_staff:
             queryset = queryset.filter(uploaded_by=self.request.user)
         return queryset
+    
+    @extend_schema(
+        request={'multipart/form-data': {'type': 'object', 'properties': {'file': {'type': 'string', 'format': 'binary'}}}},
+        summary="Upload CSV file for batch parts import"
+    )
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
     
     def perform_create(self, serializer):
         csv_upload = serializer.save(uploaded_by=self.request.user)

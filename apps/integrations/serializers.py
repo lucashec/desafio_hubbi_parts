@@ -6,6 +6,7 @@ class ApiKeySerializer(serializers.ModelSerializer):
     class Meta:
         model = ApiKey
         fields = ["id", "key", "name", "is_active", "created_at", "last_used_at"]
+        read_only_fields = ["key", "is_active", "created_at", "last_used_at"]
 
 
 class IntegrationLogSerializer(serializers.ModelSerializer):

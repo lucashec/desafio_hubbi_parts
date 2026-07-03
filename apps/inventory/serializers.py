@@ -6,6 +6,7 @@ class PartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Part
         fields = ["id", "name", "description", "price", "quantity", "embedding_model", "embedding_updated_at", "created_at", "updated_at"]
+        read_only_fields = [ "embedding_model", "embedding_updated_at", "created_at", "updated_at"]
 
 
 class CSVUploadSerializer(serializers.ModelSerializer):

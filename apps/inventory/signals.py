@@ -16,12 +16,6 @@ def generate_embedding_on_part_save(
     update_fields=None,
     **kwargs,
 ):
-    """
-    Generate embedding only when relevant fields change.
-
-    Ignore updates that only modify embedding fields to prevent
-    recursive Celery tasks.
-    """
     if update_fields is not None:
         embedding_fields = {
             "embedding",
