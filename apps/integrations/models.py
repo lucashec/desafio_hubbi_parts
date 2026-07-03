@@ -73,3 +73,4 @@ class IntegrationLog(models.Model):
 
     def get_processing_time_formatted(self) -> str:
         return f"{self.processing_time:.2f}s"
+

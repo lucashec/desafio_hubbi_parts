@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, viewsets
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -67,7 +67,7 @@ class IntegrationLogViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ExternalPartSearchView(APIView):
     authentication_classes = [ApiKeyAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     @extend_schema(
         parameters=[
@@ -124,7 +124,7 @@ class ExternalPartSearchView(APIView):
 
 class ExternalPartDetailView(APIView):    
     authentication_classes = [ApiKeyAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     @extend_schema(
         parameters=[
@@ -175,12 +175,12 @@ class ExternalPartDetailView(APIView):
 
 class ExternalInventoryUpdateView(APIView):
     authentication_classes = [ApiKeyAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     @extend_schema(
         request=InventoryUpdateSerializer,
         summary="Atualizar quantidade de peça no estoque",
-        tags=["external", "inventory"]
+        tags=["external"]
     )
     def post(self, request):
         start_time = time.time()
@@ -248,34 +248,3 @@ class ExternalInventoryUpdateView(APIView):
                 {'error': 'Peça não encontrada'},
                 status=status.HTTP_404_NOT_FOUND
             )
-
-
-class StockUpdateView(APIView):
-    @extend_schema(
-        summary="Envio em lote de peças via csv",
-        request={
-            'multipart/form-data': {
-                'type': 'object',
-                'properties': {
-                    'file': {
-                        'type': 'string',
-                        'format': 'binary'
-                    }
-                }
-            }
-        },
-        parameters=[
-            OpenApiParameter(
-                name="X_API_Key",
-                type=OpenApiTypes.STR,
-                location=OpenApiParameter.HEADER,
-                required=True,
-                description="API Key"
-            )
-        ],
-    )
-    def put(self, request):
-        return Response(
-            {"message": "Atualização de estoque será implementada na próxima etapa"},
-            status=status.HTTP_200_OK,
-        )
