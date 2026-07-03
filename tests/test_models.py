@@ -1,7 +1,7 @@
 import pytest
 from decimal import Decimal
 from django.contrib.auth import get_user_model
-from apps.inventory.models import Part, Supplier
+from apps.inventory.models import Part
 from apps.consultant.models import ConsultantQuery, ConsultantResponse
 from apps.integrations.models import ApiKey, IntegrationLog
 
@@ -58,31 +58,6 @@ class TestUserModel:
         )
         assert not user.is_admin()
         assert admin_user.is_admin()
-
-
-@pytest.mark.django_db
-class TestSupplierModel:
-    """Testes para o modelo Supplier."""
-
-    def test_create_supplier(self):
-        """Testa criação de fornecedor."""
-        supplier = Supplier.objects.create(
-            name="Fornecedor A",
-            catalog_url="https://example.com/catalog"
-        )
-        assert supplier.name == "Fornecedor A"
-        assert supplier.is_active
-
-    def test_supplier_unique_name(self):
-        """Testa unicidade do nome do fornecedor."""
-        Supplier.objects.create(name="Fornecedor A")
-        with pytest.raises(Exception):
-            Supplier.objects.create(name="Fornecedor A")
-
-    def test_supplier_str_representation(self):
-        """Testa representação em string."""
-        supplier = Supplier.objects.create(name="Fornecedor A")
-        assert str(supplier) == "Fornecedor A"
 
 
 @pytest.mark.django_db

@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
 from apps.integrations.models import ApiKey, IntegrationLog
-from apps.inventory.models import Part, Supplier
+from apps.inventory.models import Part
 
 
 User = get_user_model()
@@ -80,18 +80,15 @@ class TestApiKeyManagement:
 class TestExternalPartSearch:    
     def setup_method(self):
         self.client = APIClient()
-        self.supplier = Supplier.objects.create(name="Fornecedor A")
         Part.objects.create(
             name="Motor V8",
             price=Decimal("5000.00"),
-            quantity=10,
-            supplier=self.supplier
+            quantity=10
         )
         Part.objects.create(
             name="Turbo Kompressor",
             price=Decimal("3000.00"),
-            quantity=5,
-            supplier=self.supplier
+            quantity=5
         )
         self.api_key = ApiKey.objects.create(
             name="Test Key",
@@ -146,12 +143,10 @@ class TestExternalPartSearch:
 class TestExternalPartDetail:    
     def setup_method(self):
         self.client = APIClient()
-        self.supplier = Supplier.objects.create(name="Fornecedor A")
         self.part = Part.objects.create(
             name="Motor V8",
             price=Decimal("5000.00"),
-            quantity=10,
-            supplier=self.supplier
+            quantity=10
         )
         self.api_key = ApiKey.objects.create(
             name="Test Key",
@@ -188,12 +183,10 @@ class TestExternalPartDetail:
 class TestExternalInventoryUpdate:    
     def setup_method(self):
         self.client = APIClient()
-        self.supplier = Supplier.objects.create(name="Fornecedor A")
         self.part = Part.objects.create(
             name="Motor V8",
             price=Decimal("5000.00"),
-            quantity=10,
-            supplier=self.supplier
+            quantity=10
         )
         self.api_key = ApiKey.objects.create(
             name="Test Key",

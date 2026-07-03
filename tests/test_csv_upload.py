@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.test import APIClient
 from rest_framework import status
-from apps.inventory.models import Part, Supplier, CSVUpload
+from apps.inventory.models import Part, CSVUpload
 
 
 User = get_user_model()
@@ -56,11 +56,10 @@ class TestCSVUpload:
     def test_create_csv_upload_admin(self):
         csv_data = [
             {
-                'name': 'Motor V8',
-                'description': 'Motor V8 3.0L',
-                'price': '5000.00',
-                'quantity': '10',
-                'supplier_name': 'Fornecedor A'
+                'nome': 'Motor V8',
+                'descricao': 'Motor V8 3.0L',
+                'preco': '5000.00',
+                'quantidade_inicial': '10',
             }
         ]
         csv_file = self.create_csv_file(csv_data)
@@ -77,10 +76,10 @@ class TestCSVUpload:
     def test_create_csv_upload_non_admin(self):
         csv_data = [
             {
-                'name': 'Motor V8',
-                'price': '5000.00',
-                'quantity': '10',
-                'supplier_name': 'Fornecedor A'
+                'nome': 'Motor V8',
+                'descricao': 'Motor V8 3.0L',
+                'preco': '5000.00',
+                'quantidade_inicial': '10',
             }
         ]
         csv_file = self.create_csv_file(csv_data)

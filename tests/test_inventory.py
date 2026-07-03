@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
-from apps.inventory.models import Part, Supplier
+from apps.inventory.models import Part
 
 
 User = get_user_model()
@@ -23,13 +23,11 @@ class TestPartViewSet:
             email="admin@example.com",
             password="adminpass123"
         )
-        self.supplier = Supplier.objects.create(name="Fornecedor A")
         self.part_data = {
             "name": "Motor V8",
             "description": "Motor V8 3.0L",
             "price": "5000.00",
-            "quantity": 10,
-            "supplier": self.supplier.id,
+            "quantity": 10
         }
 
     def test_list_parts_authenticated(self):
@@ -56,8 +54,7 @@ class TestPartViewSet:
         part = Part.objects.create(
             name="Motor V8",
             price=Decimal("5000.00"),
-            quantity=10,
-            supplier=self.supplier
+            quantity=10
         )
         self.client.force_authenticate(user=self.user)
         response = self.client.get(f"/api/parts/{part.id}/")
@@ -68,8 +65,7 @@ class TestPartViewSet:
         part = Part.objects.create(
             name="Motor V8",
             price=Decimal("5000.00"),
-            quantity=10,
-            supplier=self.supplier
+            quantity=10
         )
         self.client.force_authenticate(user=self.admin)
         data = {"quantity": 20}
@@ -81,8 +77,7 @@ class TestPartViewSet:
         part = Part.objects.create(
             name="Motor V8",
             price=Decimal("5000.00"),
-            quantity=10,
-            supplier=self.supplier
+            quantity=10
         )
         self.client.force_authenticate(user=self.admin)
         response = self.client.delete(f"/api/parts/{part.id}/")
@@ -93,14 +88,12 @@ class TestPartViewSet:
         Part.objects.create(
             name="Motor V8",
             price=Decimal("5000.00"),
-            quantity=10,
-            supplier=self.supplier
+            quantity=10
         )
         Part.objects.create(
             name="Turbo",
             price=Decimal("3000.00"),
-            quantity=0,
-            supplier=self.supplier
+            quantity=0
         )
         self.client.force_authenticate(user=self.user)
         response = self.client.get("/api/parts/available/")
@@ -114,15 +107,13 @@ class TestPartViewSet:
             name="Motor V8",
             description="Motor potente",
             price=Decimal("5000.00"),
-            quantity=10,
-            supplier=self.supplier
+            quantity=1
         )
         Part.objects.create(
             name="Turbo",
             description="Turbo kompressor",
             price=Decimal("3000.00"),
-            quantity=5,
-            supplier=self.supplier
+            quantity=5
         )
         self.client.force_authenticate(user=self.user)
         response = self.client.get("/api/parts/?search=Motor")
@@ -130,42 +121,3 @@ class TestPartViewSet:
         results = response.data.get("results", response.data)
         assert len(results) == 1
         assert results[0]["name"] == "Motor V8"
-
-
-@pytest.mark.django_db
-class TestSupplierViewSet:
-    def setup_method(self):
-        self.client = APIClient()
-        self.user = User.objects.create_user(
-            username="testuser",
-            email="test@example.com",
-            password="testpass123"
-        )
-        self.admin = User.objects.create_superuser(
-            username="admin",
-            email="admin@example.com",
-            password="adminpass123"
-        )
-
-    def test_list_suppliers(self):
-        Supplier.objects.create(name="Fornecedor A")
-        self.client.force_authenticate(user=self.user)
-        response = self.client.get("/api/suppliers/")
-        assert response.status_code == status.HTTP_200_OK
-        results = response.data.get("results", response.data)
-        assert len(results) == 1
-
-    def test_create_supplier_admin(self):
-        self.client.force_authenticate(user=self.admin)
-        data = {
-            "name": "Novo Fornecedor",
-            "catalog_url": "https://example.com/catalog"
-        }
-        response = self.client.post("/api/suppliers/", data, format="json")
-        assert response.status_code == status.HTTP_201_CREATED
-
-    def test_create_supplier_non_admin(self):
-        self.client.force_authenticate(user=self.user)
-        data = {"name": "Novo Fornecedor"}
-        response = self.client.post("/api/suppliers/", data, format="json")
-        assert response.status_code == status.HTTP_403_FORBIDDEN
