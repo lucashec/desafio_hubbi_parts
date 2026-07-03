@@ -27,7 +27,7 @@ Crie um superuser do Django para performar as operações que só podem ser feit
 docker exec -it hubbi_web make create-superuser
 ````
 
-Esse comando criará o um usuário admin com as seguintes credenciais
+Esse comando criará o um usuário admin com as seguintes credenciais:
 ```json
 {
   "username": "admin",
@@ -48,3 +48,17 @@ Caso opte pelo Swagger, ele estará disponível no endpoint:
 ```
 http://localhost:8000/api/docs/#/
 ```
+
+## Modelagem
+
+### Integrations - Api Key
+Entidade que modela o registro de integração de clientes via API Key. A chave é gerada através de uma função randômica na api. Sendo retornada no GET da entidade.
+Além disso, é possível desabilitar ou habilitar uma chave.
+
+### Integrations - Integration Log
+Entidade que registra toda a atividade do cliente integrado via API Key. Para métricas e/ou auditoria posterior.
+
+### Parts
+Modela uma peça, que pode ser criada, listada, alterada e removida via arquivo csv ou endpoint.
+
+
