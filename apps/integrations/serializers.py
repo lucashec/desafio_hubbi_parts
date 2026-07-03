@@ -13,3 +13,13 @@ class IntegrationLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = IntegrationLog
         fields = ["id", "api_key", "action", "status", "payload", "response", "error_message", "created_at"]
+
+
+class InventoryUpdateSerializer(serializers.Serializer):
+    part_id = serializers.IntegerField(help_text="ID da peça a atualizar")
+    quantity_delta = serializers.IntegerField(help_text="Alteração na quantidade (positivo ou negativo)")
+    
+    def validate_part_id(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("O ID da peça deve ser positivo.")
+        return value

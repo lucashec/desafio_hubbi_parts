@@ -75,3 +75,15 @@ class ProfileSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
         return instance
+
+
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField(required=False, allow_blank=True)
+    
+    def validate_refresh(self, value):
+        if value:
+            try:
+                RefreshToken(value)
+            except Exception:
+                raise serializers.ValidationError("Token inválido ou expirado.")
+        return value

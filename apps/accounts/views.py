@@ -11,6 +11,7 @@ from .serializers import (
     UserSerializer,
     CustomTokenObtainPairSerializer,
     ProfileSerializer,
+    LogoutSerializer,
 )
 
 
@@ -21,29 +22,9 @@ class RegisterView(APIView):
     permission_classes = [AllowAny]
 
     @extend_schema(
-        request={
-            'type': 'object',
-            'properties': {
-                'email': {'type': 'string', 'format': 'email'},
-                'password': {'type': 'string'},
-                'password_confirm': {'type': 'string'},
-                'first_name': {'type': 'string'},
-                'last_name': {'type': 'string'}
-            },
-            'required': ['email', 'password', 'password_confirm']
-        },
-        responses={
-            201: {
-                'type': 'object',
-                'properties': {
-                    'message': {'type': 'string'},
-                    'user': {'type': 'object'},
-                    'refresh': {'type': 'string'},
-                    'access': {'type': 'string'}
-                }
-            },
-            400: {'type': 'object'}
-        }
+        request=RegisterSerializer,
+        summary="Registrar novo usuário",
+        tags=["auth"]
     )
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -66,41 +47,17 @@ class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        responses={
-            200: {
-                'type': 'object',
-                'properties': {
-                    'id': {'type': 'integer'},
-                    'email': {'type': 'string'},
-                    'first_name': {'type': 'string'},
-                    'last_name': {'type': 'string'}
-                }
-            }
-        }
+        summary="Obter perfil do usuário autenticado",
+        tags=["auth"]
     )
     def get(self, request):
         serializer = ProfileSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(
-        request={
-            'type': 'object',
-            'properties': {
-                'first_name': {'type': 'string'},
-                'last_name': {'type': 'string'},
-                'email': {'type': 'string', 'format': 'email'}
-            }
-        },
-        responses={
-            200: {
-                'type': 'object',
-                'properties': {
-                    'message': {'type': 'string'},
-                    'user': {'type': 'object'}
-                }
-            },
-            400: {'type': 'object'}
-        }
+        request=ProfileSerializer,
+        summary="Atualizar perfil do usuário autenticado",
+        tags=["auth"]
     )
     def put(self, request):
         serializer = ProfileSerializer(request.user, data=request.data, partial=True)
@@ -120,26 +77,9 @@ class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        request={
-            'type': 'object',
-            'properties': {
-                'refresh': {'type': 'string', 'description': 'Refresh token'}
-            }
-        },
-        responses={
-            200: {
-                'type': 'object',
-                'properties': {
-                    'message': {'type': 'string'}
-                }
-            },
-            400: {
-                'type': 'object',
-                'properties': {
-                    'error': {'type': 'string'}
-                }
-            }
-        }
+        request=LogoutSerializer,
+        summary="Fazer logout do usuário autenticado",
+        tags=["auth"]
     )
     def post(self, request):
         try:

@@ -12,11 +12,8 @@ from .tasks import process_csv_upload
 
 class PartViewSet(viewsets.ModelViewSet):
     """
-    ViewSet para gerenciar peças.
-    Admins podem criar, editar e deletar.
-    Usuários autenticados podem listar e visualizar.
+    CRUD para peças
     """
-
     queryset = Part.objects.all()
     serializer_class = PartSerializer
     permission_classes = [IsAuthenticated]
@@ -35,37 +32,16 @@ class PartViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
     @extend_schema(
-        responses={
-            200: {
-                'type': 'array',
-                'items': {
-                    'type': 'object',
-                    'properties': {
-                        'id': {'type': 'integer'},
-                        'name': {'type': 'string'},
-                        'description': {'type': 'string'},
-                        'price': {'type': 'string'},
-                        'quantity': {'type': 'integer'}
-                    }
-                }
-            }
-        }
+        summary="Listar apenas peças disponíveis em estoque",
+        tags=["parts"]
     )
     def available(self, request):
-        """
-        Retorna apenas peças disponíveis em estoque.
-        GET /api/parts/available/
-        """
         parts = self.queryset.filter(quantity__gt=0)
         serializer = self.get_serializer(parts, many=True)
         return Response(serializer.data)
 
 
 class CSVUploadViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet para gerenciar uploads de CSV assincronos.
-    Admins fazem o upload arquivos CSV para importar peças em massa.
-    """
     queryset = CSVUpload.objects.all()
     serializer_class = CSVUploadSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
@@ -83,19 +59,8 @@ class CSVUploadViewSet(viewsets.ModelViewSet):
     
     @extend_schema(
         request={'multipart/form-data': {'type': 'object', 'properties': {'file': {'type': 'string', 'format': 'binary'}}}},
-        summary="Upload CSV file for batch parts import",
-        responses={
-            201: {
-                'type': 'object',
-                'properties': {
-                    'id': {'type': 'integer'},
-                    'file': {'type': 'string'},
-                    'status': {'type': 'string'},
-                    'uploaded_by': {'type': 'integer'},
-                    'created_at': {'type': 'string', 'format': 'date-time'}
-                }
-            }
-        }
+        summary="Envio em lote de peças via CSV",
+        tags=["csv-uploads"]
     )
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
@@ -106,20 +71,8 @@ class CSVUploadViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=["get"], permission_classes=[IsAuthenticated])
     @extend_schema(
-        responses={
-            200: {
-                'type': 'object',
-                'properties': {
-                    'id': {'type': 'integer'},
-                    'status': {'type': 'string'},
-                    'total_rows': {'type': 'integer'},
-                    'processed_rows': {'type': 'integer'},
-                    'failed_rows': {'type': 'integer'},
-                    'created_at': {'type': 'string', 'format': 'date-time'},
-                    'updated_at': {'type': 'string', 'format': 'date-time'}
-                }
-            }
-        }
+        summary="Obter status de processamento de upload CSV",
+        tags=["csv-uploads"]
     )
     def status(self, request, pk=None):
         """

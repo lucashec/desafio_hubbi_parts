@@ -9,13 +9,16 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 import time
 
 from .models import ApiKey, IntegrationLog
-from .serializers import ApiKeySerializer, IntegrationLogSerializer
+from .serializers import ApiKeySerializer, IntegrationLogSerializer, InventoryUpdateSerializer
 from .auth import ApiKeyAuthentication
 from apps.inventory.models import Part
 from apps.inventory.serializers import PartSerializer
 
 
-class ApiKeyViewSet(viewsets.ModelViewSet):    
+class ApiKeyViewSet(viewsets.ModelViewSet):
+    """
+    Módulo para criar chaves de API para integrações externas
+    """    
     queryset = ApiKey.objects.all()
     serializer_class = ApiKeySerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
@@ -26,6 +29,9 @@ class ApiKeyViewSet(viewsets.ModelViewSet):
     ordering = ["-created_at"]
     http_method_names = ["get", "post", "head", "options", "trace"]
     
+    @extend_schema(
+        summary="Desabilita uma API Key",
+    )
     @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated, IsAdminUser])
     def deactivate(self, request, pk=None):
         api_key = self.get_object()
@@ -34,6 +40,9 @@ class ApiKeyViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(api_key)
         return Response(serializer.data)
     
+    @extend_schema(
+        summary="Habilita uma API Key",
+    )
     @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated, IsAdminUser])
     def activate(self, request, pk=None):
         api_key = self.get_object()
@@ -43,7 +52,10 @@ class ApiKeyViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class IntegrationLogViewSet(viewsets.ReadOnlyModelViewSet):    
+class IntegrationLogViewSet(viewsets.ReadOnlyModelViewSet):   
+    """
+    Módulo para restrear as ações de um client conectado via API Key
+    """
     queryset = IntegrationLog.objects.all()
     serializer_class = IntegrationLogSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
@@ -74,18 +86,6 @@ class ExternalPartSearchView(APIView):
                 description="Maximum number of results (default: 10)"
             )
         ],
-        responses={
-            200: {
-                'type': 'object',
-                'properties': {
-                    'count': {'type': 'integer'},
-                    'results': {
-                        'type': 'array',
-                        'items': {'type': 'object'}
-                    }
-                }
-            }
-        }
     )
     def get(self, request):
         query = request.query_params.get('query', '').strip()
@@ -136,18 +136,6 @@ class ExternalPartDetailView(APIView):
                 description="Part ID"
             )
         ],
-        responses={
-            200: {
-                'type': 'object',
-                'properties': {
-                    'id': {'type': 'integer'},
-                    'name': {'type': 'string'},
-                    'price': {'type': 'string'},
-                    'quantity': {'type': 'integer'}
-                }
-            },
-            404: {'type': 'object', 'properties': {'error': {'type': 'string'}}}
-        }
     )
     def get(self, request, part_id):
         start_time = time.time()
@@ -190,26 +178,9 @@ class ExternalInventoryUpdateView(APIView):
     permission_classes = [IsAuthenticated]
     
     @extend_schema(
-        request={
-            'type': 'object',
-            'properties': {
-                'part_id': {'type': 'integer', 'description': 'Part ID'},
-                'quantity_delta': {'type': 'integer', 'description': 'Quantity change (positive or negative)'}
-            },
-            'required': ['part_id', 'quantity_delta']
-        },
-        responses={
-            200: {
-                'type': 'object',
-                'properties': {
-                    'id': {'type': 'integer'},
-                    'name': {'type': 'string'},
-                    'quantity': {'type': 'integer'}
-                }
-            },
-            400: {'type': 'object', 'properties': {'error': {'type': 'string'}}},
-            404: {'type': 'object', 'properties': {'error': {'type': 'string'}}}
-        }
+        request=InventoryUpdateSerializer,
+        summary="Atualizar quantidade de peça no estoque",
+        tags=["external", "inventory"]
     )
     def post(self, request):
         start_time = time.time()
@@ -281,7 +252,7 @@ class ExternalInventoryUpdateView(APIView):
 
 class StockUpdateView(APIView):
     @extend_schema(
-        summary="Upload CSV file for batch parts import",
+        summary="Envio em lote de peças via csv",
         request={
             'multipart/form-data': {
                 'type': 'object',
@@ -302,14 +273,6 @@ class StockUpdateView(APIView):
                 description="API Key"
             )
         ],
-        responses={
-            200: {
-                'type': 'object',
-                'properties': {
-                    'message': {'type': 'string'}
-                }
-            }
-        }
     )
     def put(self, request):
         return Response(

@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from drf_spectacular.utils import extend_schema, OpenApiTypes
 from services.consultor_ia import processar_query_consultor
 from .models import ConsultantQuery, ConsultantResponse
-from .serializers import ConsultantQuerySerializer, ConsultantResponseSerializer
+from .serializers import ConsultantQuerySerializer, ConsultantResponseSerializer, ConsultantQueryInputSerializer
 import time
 
 
@@ -18,40 +18,9 @@ class ConsultorView(APIView):
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        request={
-            'type': 'object',
-            'properties': {
-                'query': {'type': 'string', 'description': 'Pergunta para o consultor de IA'}
-            },
-            'required': ['query']
-        },
-        responses={
-            200: {
-                'type': 'object',
-                'properties': {
-                    'query_id': {'type': 'integer'},
-                    'query': {'type': 'string'},
-                    'intenção': {'type': 'string'},
-                    'resposta': {'type': 'string'},
-                    'peças_recomendadas': {'type': 'array', 'items': {'type': 'object'}},
-                    'tempo_processamento': {'type': 'number'},
-                    'status': {'type': 'string'}
-                }
-            },
-            400: {
-                'type': 'object',
-                'properties': {
-                    'erro': {'type': 'string'}
-                }
-            },
-            500: {
-                'type': 'object',
-                'properties': {
-                    'erro': {'type': 'string'},
-                    'status': {'type': 'string'}
-                }
-            }
-        }
+        request=ConsultantQueryInputSerializer,
+        summary="Consultar assistente de IA sobre peças",
+        tags=["consultor"]
     )
     def post(self, request):
         """Processa uma query do consultor."""
@@ -123,22 +92,8 @@ class ConsultorHistoricoView(APIView):
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        responses={
-            200: {
-                'type': 'array',
-                'items': {
-                    'type': 'object',
-                    'properties': {
-                        'id': {'type': 'integer'},
-                        'query': {'type': 'string'},
-                        'status': {'type': 'string'},
-                        'criado_em': {'type': 'string', 'format': 'date-time'},
-                        'resposta': {'type': 'string'},
-                        'tempo_processamento': {'type': 'number'}
-                    }
-                }
-            }
-        }
+        summary="Obter histórico de consultas do usuário",
+        tags=["consultor"]
     )
     def get(self, request):
         """Retorna histórico de queries do usuário autenticado."""
