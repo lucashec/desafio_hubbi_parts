@@ -49,6 +49,8 @@ Caso opte pelo Swagger, ele estará disponível no endpoint:
 http://localhost:8000/api/docs/#/
 ```
 
+Para autenticar com JWT ou X_API_KEY, utilize o botão Authorize, disponível no canto superior direito.
+
 ## Modelagem
 
 ### Integrations - Api Key
@@ -60,5 +62,4 @@ Entidade que registra toda a atividade do cliente integrado via API Key. Para m�
 
 ### Parts
 Modela uma peça, que pode ser criada, listada, alterada e removida via arquivo csv ou endpoint.
-
 
