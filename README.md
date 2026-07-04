@@ -3,24 +3,51 @@
 Este projeto consiste em uma API de uma plataforma simplificada para o gerenciamento de peças automotivas, com funcionalidades
 de busca com auxílio de RAG e interação com IA via LLM.
 
-## Setup
-Para rodar o projeto utilize o docker, que subirá toda a infraestrutura necessária (Postgres, Redis, API com Django REST e Celery).
+---
 
-<h4> Variáveis de Ambiente </h4>
-Todo a configuração declarada no .env.example pode ser copiada para o .env, necessitando apenas de uma chave para a API do Gemini e uma secret key para a assinatura do JWT.
+# Requisitos
 
+- Docker
+- Docker Compose
+
+
+---
+
+# Configuração
+
+Copie o arquivo de exemplo:
+
+```bash
+cp .env.example .env
 ```
-GEMINI_API_KEY=your_gemini_secret_here
-SECRET_API_KEY=TVlTRUNVUkVLRVk (exemplo em base64) 
+
+Configure as variáveis:
+
+```env
+GEMINI_API_KEY=your_gemini_api_key
+SECRET_API_KEY=TVlTRUNVUkVLRVk
 ```
 
-<b>Por se tratar de um projeto com dependência de modelos de IA, a imagem final possui cerca de 9GB, é necessário ter esse espaço disponível em disco para um build correto.</b>
+Onde:
 
+| Variável | Descrição |
+|----------|-----------|
+| GEMINI_API_KEY | Chave da API do Google Gemini |
+| SECRET_API_KEY | Chave utilizada para assinatura do JWT |
 
-Entre no diretório raiz e rode:
+---
+
+# Executando o projeto
+
+Na raiz do projeto:
+
+```bash
+docker compose up --build
 ```
-docker compose up
-```
+
+Na primeira execução poderá levar alguns minutos devido ao download do modelo de embeddings.
+
+---
 
 Crie um superuser do Django para performar as operações que só podem ser feitas por admins:
 ````
@@ -41,43 +68,120 @@ Para avaliar a cobertura de testes, rode:
 docker exec -it hubbi_web make test
 ```
 
-## Teste de Requests
-Há duas alternativas para testar requests, a primeira é via Swagger gerado pela própria API, a segunda é via extensão REST Client do VSCode. O arquivo de referência para utilização no VSCode está disponível na raiz do projeto como <b>test_request.http</b>.
+# Fluxos de utilização
 
-Caso opte pelo Swagger, ele estará disponível no endpoint:
+## Usuário comum
+
+1. Registrar usuário
+
+```http
+POST /auth/register
 ```
-http://localhost:8000/api/docs/#/
+
+2. Autenticar
+
+```http
+POST /token
 ```
 
-Para autenticar com JWT ou X_API_KEY, utilize o botão Authorize, disponível no canto superior direito. Cole o access gerado no token ou api key gerada no endpoint.
+3. Consultar peças
 
-### Fluxo para testar o CRUD de parts como um user comum
-* Criar um usuário no endpoint /auth/register
-* Autenticar no endpoint /token
-* Usar os endpoints de leitura /parts
+```http
+GET /parts
+```
 
-### Fluxo para testar o CRUD de parts como um admin
-* Autenticar no endpoint /token com o superuser criado
-* Usar os endpoints /parts
- 
-### Fluxo para testar o upload de arquivo csv como cliente externa
-* Gerar uma api key no endpoint /api-keys
-* Buscar a chave por id no endpoint /api-keys/1
-* Fazer o upload do csv no endpoint /external/csv-uploads
+---
 
-### Fluxo para testar o batch update de peças existentes
-* Buscar a chave por id no endpoint /api-keys/1
-* Fazer a request com o array de peças a serem atualizadas no endpoint /external/inventory/update
+## Administrador
 
-## Modelagem
+1. Autenticar utilizando o superusuário
 
-### Integrations - Api Key
-Entidade que modela o registro de integração de clientes via API Key. A chave é gerada através de uma função randômica na api. Sendo retornada no GET da entidade.
-Além disso, é possível desabilitar ou habilitar uma chave.
+```http
+POST /token
+```
 
-### Integrations - Integration Log
-Entidade que registra toda a atividade do cliente integrado via API Key. Para métricas e/ou auditoria posterior.
+2. Utilizar o CRUD completo
 
-### Parts
-Modela uma peça, que pode ser criada, listada, alterada e removida via arquivo csv ou endpoint.
+```text
+/parts
+```
 
+---
+
+## Cliente externo
+
+1. Criar API Key
+
+```http
+POST /api-keys
+```
+
+2. Recuperar a chave
+
+```http
+GET /api-keys/{id}
+```
+
+3. Enviar CSV
+
+```http
+POST /external/csv-uploads
+```
+
+---
+
+## Atualização em lote
+
+```http
+POST /external/inventory/update
+```
+
+---
+
+# Modelagem
+
+## Parts
+
+Representa uma peça automotiva.
+
+Possui informações como:
+
+- nome
+- descrição
+- preço
+- quantidade
+- embedding vetorial
+
+Operações:
+
+- criação
+- edição
+- exclusão
+- listagem
+- importação via CSV
+
+---
+
+## API Keys
+
+Representa clientes integrados.
+
+Características:
+
+- geração automática da chave
+- habilitar/desabilitar
+- autenticação via header
+
+---
+
+## Integration Logs
+
+Responsável por registrar todas as chamadas realizadas por clientes externos.
+
+Objetivos:
+
+- auditoria
+- métricas
+- rastreabilidade
+
+---
