@@ -87,7 +87,11 @@ services:
     container_name: hubbi_celery
     env_file:
       - .env
-    command: celery -A config worker -l info
+    command: >
+      celery -A config worker
+      -l info
+      --concurrency=2
+      --max-tasks-per-child=20
     environment:
       DATABASE_ENGINE: ${DATABASE_ENGINE}
       DATABASE_NAME: ${DATABASE_NAME}
