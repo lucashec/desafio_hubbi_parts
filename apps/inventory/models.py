@@ -25,7 +25,6 @@ class Part(models.Model):
     )
     embedding_model = models.CharField(
         max_length=100,
-        default="sentence-transformers/all-MiniLM-L6-v2",
         help_text="Embedding model used to generate this vector"
     )
     embedding_updated_at = models.DateTimeField(

@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from apps.integrations.auth import ApiKeyAuthentication
 from drf_spectacular.utils import extend_schema, OpenApiTypes, OpenApiParameter
+from rest_framework.parsers import MultiPartParser, FormParser
 from .models import Part, CSVUpload
 from .serializers import PartSerializer, CSVUploadSerializer, CSVUploadStatusSerializer
 from django_filters.rest_framework import DjangoFilterBackend
@@ -83,6 +84,7 @@ class CSVUploadViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 class ExternalCSVUploadViewSet(viewsets.ModelViewSet):
+    parser_classes = [MultiPartParser, FormParser]
     queryset = CSVUpload.objects.all()
     serializer_class = CSVUploadSerializer
     authentication_classes = [ApiKeyAuthentication]
@@ -97,15 +99,6 @@ class ExternalCSVUploadViewSet(viewsets.ModelViewSet):
             }
         }},
         summary="Envio em lote de peças via CSV por um cliente externo",
-        parameters=[
-            OpenApiParameter(
-                name="X_API_Key",
-                type=OpenApiTypes.STR,
-                location=OpenApiParameter.HEADER,
-                required=True,
-                description="API Key"
-            )
-        ],
         tags=["external"]
     )
     def create(self, request, *args, **kwargs):
@@ -118,15 +111,6 @@ class ExternalCSVUploadViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["get"], authentication_classes = [ApiKeyAuthentication])
     @extend_schema(
         summary="Obter status de processamento de upload CSV",
-        parameters=[
-            OpenApiParameter(
-                name="X_API_Key",
-                type=OpenApiTypes.STR,
-                location=OpenApiParameter.HEADER,
-                required=True,
-                description="API Key"
-            )
-        ],
         tags=["external"]
     )
     def status(self, request, pk=None):

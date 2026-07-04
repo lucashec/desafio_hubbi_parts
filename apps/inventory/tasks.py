@@ -10,11 +10,6 @@ logger = logging.getLogger(__name__)
 
 @shared_task(bind=True)
 def process_csv_upload(self, csv_upload_id):
-    """
-    Processa um arquivo CSV enviado pelo usuário.
-    Importa peças e gera embeddings automaticamente.
-    Formato esperado: nome,descricao,preco,quantidade_inicial
-    """
     try:
         csv_upload = CSVUpload.objects.get(id=csv_upload_id)
         csv_upload.status = "processing"
@@ -110,10 +105,6 @@ def process_csv_upload(self, csv_upload_id):
 
 @shared_task
 def generate_embeddings_for_parts(part_ids):
-    """
-    Generates embeddings for multiple parts in a single task.
-    More efficient than queuing individual tasks.
-    """
     if not part_ids:
         return {"success": 0, "failed": 0}
     
@@ -148,10 +139,6 @@ _embedding_model = None
 
 
 def get_embedding_model():
-    """
-    Cache global para o modelo de embedding.
-    Carrega o modelo uma única vez e reutiliza em todas as tarefas.
-    """
     global _embedding_model
     if _embedding_model is None:
         from sentence_transformers import SentenceTransformer
@@ -163,10 +150,6 @@ def get_embedding_model():
 
 @shared_task
 def generate_part_embedding(part_id):
-    """
-    Generates embedding for a part with optimized model caching.
-    Called asynchronously when a part is created or updated.
-    """
     try:
         part = Part.objects.get(id=part_id)
         from services.vector_search_service import VectorSearchService
@@ -186,10 +169,6 @@ def generate_part_embedding(part_id):
 
 @shared_task
 def regenerate_all_embeddings():
-    """
-    Regenerates embeddings for all parts.
-    Can be called periodically or on demand.
-    """
     try:
         from services.vector_search_service import VectorSearchService
         

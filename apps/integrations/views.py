@@ -64,187 +64,130 @@ class IntegrationLogViewSet(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ["created_at", "status"]
     ordering = ["-created_at"]
 
-
-class ExternalPartSearchView(APIView):
-    authentication_classes = [ApiKeyAuthentication]
-    permission_classes = [AllowAny]
-    
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="query",
-                type=OpenApiTypes.STR,
-                location=OpenApiParameter.QUERY,
-                required=True,
-                description="Search query for parts"
-            ),
-            OpenApiParameter(
-                name="limit",
-                type=OpenApiTypes.INT,
-                location=OpenApiParameter.QUERY,
-                required=False,
-                description="Maximum number of results (default: 10)"
-            )
-        ],
-    )
-    def get(self, request):
-        query = request.query_params.get('query', '').strip()
-        limit = int(request.query_params.get('limit', 10))
-        
-        if not query:
-            return Response(
-                {'error': 'Parâmetro "query" é obrigatório'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        start_time = time.time()
-        
-        parts = Part.objects.filter(
-            name__icontains=query
-        )[:limit]
-        
-        processing_time = time.time() - start_time
-        
-        api_key = request.auth
-        IntegrationLog.objects.create(
-            api_key=api_key,
-            action='search_parts',
-            status='success',
-            payload={'query': query, 'limit': limit},
-            response={'count': parts.count()},
-            processing_time=processing_time
-        )
-        
-        serializer = PartSerializer(parts, many=True)
-        return Response({
-            'count': len(serializer.data),
-            'results': serializer.data
-        })
-
-
-class ExternalPartDetailView(APIView):    
-    authentication_classes = [ApiKeyAuthentication]
-    permission_classes = [AllowAny]
-    
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="part_id",
-                type=OpenApiTypes.INT,
-                location=OpenApiParameter.PATH,
-                required=True,
-                description="Part ID"
-            )
-        ],
-    )
-    def get(self, request, part_id):
-        start_time = time.time()
-        api_key = request.auth
-        
-        try:
-            part = Part.objects.get(id=part_id)
-            processing_time = time.time() - start_time
-            
-            IntegrationLog.objects.create(
-                api_key=api_key,
-                action='get_part_detail',
-                status='success',
-                payload={'part_id': part_id},
-                response={'name': part.name, 'price': str(part.price)},
-                processing_time=processing_time
-            )
-            
-            serializer = PartSerializer(part)
-            return Response(serializer.data)
-        
-        except Part.DoesNotExist:
-            processing_time = time.time() - start_time
-            IntegrationLog.objects.create(
-                api_key=api_key,
-                action='get_part_detail',
-                status='error',
-                payload={'part_id': part_id},
-                error_message=f'Part with id {part_id} not found',
-                processing_time=processing_time
-            )
-            return Response(
-                {'error': 'Peça não encontrada'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-
 class ExternalInventoryUpdateView(APIView):
     authentication_classes = [ApiKeyAuthentication]
     permission_classes = [AllowAny]
-    
+
     @extend_schema(
-        request=InventoryUpdateSerializer,
-        summary="Atualizar quantidade de peça no estoque",
+        request=InventoryUpdateSerializer(many=True),
+        summary="Atualização em lote de estoque (quantidade absoluta)",
         tags=["external"]
     )
     def post(self, request):
         start_time = time.time()
         api_key = request.auth
-        
-        part_id = request.data.get('part_id')
-        quantity_delta = request.data.get('quantity_delta')
-        
-        if not part_id or quantity_delta is None:
+
+        payload = request.data
+
+        if not isinstance(payload, list):
             return Response(
-                {'error': 'part_id e quantity_delta são obrigatórios'},
+                {"error": "Payload deve ser uma lista de objetos"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
-        try:
-            part = Part.objects.get(id=part_id)
+
+        part_ids = [item.get("part_id") for item in payload if item.get("part_id")]
+
+        parts = Part.objects.filter(id__in=part_ids)
+        parts_map = {p.id: p for p in parts}
+
+        updates = []
+        logs = []
+        not_found = []
+
+        for item in payload:
+            part_id = item.get("part_id")
+            quantity = item.get("quantity")
+
+            if not part_id:
+                logs.append(
+                    IntegrationLog(
+                        api_key=api_key,
+                        action="update_inventory",
+                        status="error",
+                        payload=item,
+                        error_message="part_id é obrigatório",
+                        processing_time=time.time() - start_time,
+                    )
+                )
+                continue
+
+            part = parts_map.get(part_id)
+
+            if not part:
+                not_found.append({
+                    "part_id": part_id,
+                    "error": "Part not found"
+                })
+
+                logs.append(
+                    IntegrationLog(
+                        api_key=api_key,
+                        action="update_inventory",
+                        status="error",
+                        payload=item,
+                        error_message=f"Part {part_id} não encontrada",
+                        processing_time=time.time() - start_time,
+                    )
+                )
+                continue
+
+            if quantity is None:
+                logs.append(
+                    IntegrationLog(
+                        api_key=api_key,
+                        action="update_inventory",
+                        status="error",
+                        payload=item,
+                        error_message="quantity é obrigatório",
+                        processing_time=time.time() - start_time,
+                    )
+                )
+                continue
+
+            new_quantity = int(quantity)
+
+            if new_quantity < 0:
+                logs.append(
+                    IntegrationLog(
+                        api_key=api_key,
+                        action="update_inventory",
+                        status="error",
+                        payload=item,
+                        error_message="Quantidade não pode ser negativa",
+                        processing_time=time.time() - start_time,
+                    )
+                )
+                continue
+
             old_quantity = part.quantity
-            part.quantity += int(quantity_delta)
-            
-            if part.quantity < 0:
-                processing_time = time.time() - start_time
-                IntegrationLog.objects.create(
+            part.quantity = new_quantity
+            updates.append(part)
+
+            logs.append(
+                IntegrationLog(
                     api_key=api_key,
-                    action='update_inventory',
-                    status='error',
-                    payload={'part_id': part_id, 'quantity_delta': quantity_delta},
-                    error_message='Quantidade resultante não pode ser negativa',
-                    processing_time=processing_time
+                    action="update_inventory",
+                    status="success",
+                    payload=item,
+                    response={
+                        "part_id": part.id,
+                        "old_quantity": old_quantity,
+                        "new_quantity": new_quantity,
+                    },
+                    processing_time=time.time() - start_time,
                 )
-                return Response(
-                    {'error': 'Quantidade resultante não pode ser negativa'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            
-            part.save()
-            processing_time = time.time() - start_time
-            
-            IntegrationLog.objects.create(
-                api_key=api_key,
-                action='update_inventory',
-                status='success',
-                payload={'part_id': part_id, 'quantity_delta': quantity_delta},
-                response={
-                    'part_id': part.id,
-                    'old_quantity': old_quantity,
-                    'new_quantity': part.quantity
-                },
-                processing_time=processing_time
             )
-            
-            serializer = PartSerializer(part)
-            return Response(serializer.data)
-        
-        except Part.DoesNotExist:
-            processing_time = time.time() - start_time
-            IntegrationLog.objects.create(
-                api_key=api_key,
-                action='update_inventory',
-                status='error',
-                payload={'part_id': part_id, 'quantity_delta': quantity_delta},
-                error_message=f'Part with id {part_id} not found',
-                processing_time=processing_time
-            )
-            return Response(
-                {'error': 'Peça não encontrada'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+
+        if updates:
+            Part.objects.bulk_update(updates, ["quantity"])
+
+        IntegrationLog.objects.bulk_create(logs)
+
+        return Response(
+            {
+                "updated": len(updates),
+                "errors": len(logs) - len(updates),
+                "not_found": not_found
+            },
+            status=status.HTTP_207_MULTI_STATUS
+        )
