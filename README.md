@@ -49,8 +49,17 @@ Caso opte pelo Swagger, ele estará disponível no endpoint:
 http://localhost:8000/api/docs/#/
 ```
 
-Para autenticar com JWT ou X_API_KEY, utilize o botão Authorize, disponível no canto superior direito.
+Para autenticar com JWT ou X_API_KEY, utilize o botão Authorize, disponível no canto superior direito. Cole o access gerado no token ou api key gerada no endpoint.
 
+### Fluxo para testar o CRUD de parts como um user comum
+* Criar um usuário no endpoint /auth/register
+* Autenticar no endpoint /token
+* Usar os endpoints de leitura /parts
+
+### Fluxo para testar o CRUD de parts como um admin
+* Autenticar no endpoint /token com o superuser criado
+* Usar os endpoints /parts
+ 
 ## Modelagem
 
 ### Integrations - Api Key
