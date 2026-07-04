@@ -60,6 +60,15 @@ Para autenticar com JWT ou X_API_KEY, utilize o botão Authorize, disponível no
 * Autenticar no endpoint /token com o superuser criado
 * Usar os endpoints /parts
  
+### Fluxo para testar o upload de arquivo csv como cliente externa
+* Gerar uma api key no endpoint /api-keys
+* Buscar a chave por id no endpoint /api-keys/1
+* Fazer o upload do csv no endpoint /external/csv-uploads
+
+### Fluxo para testar o batch update de peças existentes
+* Buscar a chave por id no endpoint /api-keys/1
+* Fazer a request com o array de peças a serem atualizadas no endpoint /external/inventory/update
+
 ## Modelagem
 
 ### Integrations - Api Key
