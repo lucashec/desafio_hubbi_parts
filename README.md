@@ -136,6 +136,13 @@ POST /external/csv-uploads
 POST /external/inventory/update
 ```
 
+## Atualização do invetário de peças via CSV.
+A task do celery é dispara pelo endpoint:
+```http
+POST /csv-uploads
+```
+Após o envio do csv, é feito a geração dos embeddings. 
+
 ---
 
 # Modelagem
