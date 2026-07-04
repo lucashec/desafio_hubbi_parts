@@ -19,7 +19,7 @@ class ApiKeyAuthentication(BaseAuthentication):
         api_key = request.META.get('HTTP_X_API_KEY')
         
         if not api_key:
-            return None
+            raise AuthenticationFailed("API key não encontrada") 
         
         try:
             key_obj = ApiKey.objects.get(key=api_key)
