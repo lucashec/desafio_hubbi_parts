@@ -67,6 +67,15 @@ Para avaliar a cobertura de testes, rode:
 ```
 docker exec -it hubbi_web make test
 ```
+___
+# Teste de Requests
+Há duas alternativas para testar requests, a primeira é via Swagger gerado pela própria API, a segunda é via extensão REST Client do VSCode. O arquivo de referência para utilização no VSCode está disponível na raiz do projeto como <b>test_request.http</b>.
+
+Caso opte pelo Swagger, ele estará disponível no endpoint:
+```http
+GET http://localhost:8000/api/docs/#/
+```
+___
 
 # Fluxos de utilização
 
